@@ -120,11 +120,29 @@
     let html = '', lastD = 0;
     ST.forEach((x, i) => {
       if (x.d !== lastD) { lastD = x.d; html += `<h4 style="--c:${GL_DAYS[x.d].c}">${GL_DAYS[x.d].label} · ${GL_DAYS[x.d].name}</h4>`; }
-      html += `<button class="ls-row${i < curStep ? ' done' : ''}${i === curStep ? ' live' : ''}" data-i="${i}"><span class="mono">${pad2(i + 1)}</span><span class="mono">${x.t}</span><b>${GL_KINDS[x.k].ic} ${x.title}</b><em>${x.m}'</em><span class="go">${i === curStep ? '● LIVE' : 'JUMP →'}</span></button>`;
+      html += `<button class="ls-row${i < curStep ? ' done' : ''}${i === curStep ? ' live' : ''}" data-i="${i}"><span class="mono">${pad2(i + 1)}</span><span class="mono">${x.t}</span><b>${GL_KINDS[x.k].ic} ${x.title}${x.ia ? ' <i class="ls-iab">📊</i>' : ''}</b><em>${x.m}'</em><span class="go">${i === curStep ? '● LIVE' : 'JUMP →'}</span></button>`;
     });
     $('#ls-list').innerHTML = html;
+    mountIa(changed);
     if (changed) animate('#ls-now', { scale: [.97, 1], boxShadow: ['0 0 80px rgba(255,225,77,.5)', '0 0 40px rgba(255,225,77,.08)'] }, { duration: .6 });
   }
+  let iaStop = () => {}, iaFor = -1;
+  function mountIa(force) {
+    if (!force && iaFor === curStep) return;
+    iaFor = curStep; iaStop();
+    const st = ST[curStep], wrap = $('#ls-ia-wrap');
+    wrap.hidden = !st.ia;
+    iaStop = window.GLIA ? GLIA.mount($('#ls-ia'), curStep, st.ia, { projector: true }) : () => {};
+  }
+  $('#ls-ia-clear').addEventListener('click', async () => {
+    if (!confirm('Delete all answers for this step? (e.g. new round of Two Truths and a Lie)')) return;
+    try { const n = await GLIA.clear(PIN, curStep); FX.zap('down'); $('#ls-ia-clear').textContent = `Cleared ${n} ✓`; setTimeout(() => $('#ls-ia-clear').textContent = 'Clear answers', 1800); }
+    catch (e) { alert('Could not clear: ' + e.message); }
+  });
+  $('#ls-ia-full').addEventListener('click', () => {
+    const w = $('#ls-ia-wrap');
+    if (document.fullscreenElement) document.exitFullscreen(); else (w.requestFullscreen || w.webkitRequestFullscreen).call(w);
+  });
   function since() {
     const m = Math.floor((Date.now() - stepAt) / 60000), st = ST[curStep];
     $('#ls-since').textContent = `opened ${m} min ago · planned ${st.m} min${m >= st.m ? ' · ⏰ over time' : ''}`;

@@ -71,6 +71,7 @@
     });
     animate('#st-timer', { opacity: [0, 1], scaleX: [.6, 1] }, { delay: .6, duration: .6 });
     if (st.sec) enhance(box);
+    cleanup.push(GLIA.mount($('#st-ia'), view, st.ia));
     $$('#dr-list .dr-step').forEach(b => b.classList.toggle('cur', +b.dataset.i === view));
   }
 
