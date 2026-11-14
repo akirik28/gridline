@@ -26,6 +26,19 @@
   html.board .bd-right .st-ia { margin-top: 0 !important; }
   .bd-fit { transform-origin: 50% 50%; }
   html.board #step.two .st-art { display: none; }
+  html.board .bd-right .st-content { margin-top: 0; padding-top: 0; border-top: 0; }
+  html.board .bd-right .hero-title { font-size: 130px; margin-top: 0; }
+  html.board .bd-right .hero-sub { font-size: 26px; } html.board .bd-right .hero-q { font-size: 40px; }
+  html.board .bd-right .stat b { font-size: 42px; } html.board .bd-right .chair-card h3 { font-size: 32px; }
+  html.board .bd-right .sec-title { font-size: 80px; } html.board .bd-right .sec-lead { font-size: 22px; } html.board .bd-right .h3 { font-size: 30px; }
+  html.board .bd-right .topic-q { padding: 40px; } html.board .bd-right .topic-q p { font-size: 34px; }
+  html.board .bd-right .fact-n { font-size: 64px; } html.board .bd-right .vc-placeholder h3 { font-size: 40px; }
+  html.board .bd-right .conflict h3 { font-size: 28px; } html.board .bd-right .blackout b { font-size: 150px; }
+  html.board .bd-right .cy-center b { font-size: 80px; } html.board .bd-right .lego-out { font-size: 24px; }
+  html.board .bd-right .mq-track { font-size: 22px; } html.board .bd-right .game-hero, html.board .bd-right .lego, html.board .bd-right .check { padding: 32px; }
+  html.board #step.two.wide { grid-template-columns: minmax(0, .8fr) minmax(0, 2fr); }
+  html.board .bd-right.both { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 40px; align-items: start; }
+  html.board .st-ia.multi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 32px; align-items: start; }
   .bd-ov { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 4vh 4vw; background: #04060d; }
   .bd-ov[hidden] { display: none; }
   .bd-ov::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 50%, rgba(61,242,255,.10), transparent 70%); pointer-events: none; }
@@ -79,11 +92,30 @@
     if (!ov.hidden) return;
     const has = [...right.children].some(e => !e.hidden && e.childElementCount);
     step.classList.toggle('two', has);
+    const cE = $('#st-content'), iE = $('#st-ia');
+    const cOn = cE && !cE.hidden && cE.childElementCount > 0, iOn = iE && !iE.hidden && iE.childElementCount > 0;
+    const canMulti = iOn && iE.querySelectorAll(':scope > .ia-slot').length > 1, canBoth = cOn && iOn;
     const p = PAD(), W = innerWidth - 2 * p.x, H = innerHeight - p.top - p.bot;
     step.style.transform = 'none';
-    let w = W; step.style.width = w + 'px';
-    let h = step.offsetHeight, sc = Math.min(1, H / h);
-    if (sc < 1) { w = Math.min(W / sc, W * 1.9); step.style.width = w + 'px'; h = step.offsetHeight; sc = Math.min(1, H / h, W / w); }
+    // try the possible layouts and keep the one that needs the least shrinking
+    const layouts = [[false, false]];
+    if (canBoth) layouts.push([true, false]);
+    if (canMulti) layouts.push([false, true]);
+    let best = null;
+    for (const [both, multi] of layouts) {
+      right.classList.toggle('both', both); iE && iE.classList.toggle('multi', multi);
+      step.classList.toggle('wide', both || multi);
+      let w = W; step.style.width = w + 'px';
+      let h = step.offsetHeight, sc = Math.min(1, H / h);
+      if (sc < 1) { w = Math.min(W / sc, W * 1.9); step.style.width = w + 'px'; h = step.offsetHeight; sc = Math.min(1, H / h, W / w); }
+      // anything sticking out sideways (long words, wide cards) counts too
+      sc = Math.min(sc, W / Math.max(w, step.scrollWidth, left.scrollWidth + left.offsetLeft, right.scrollWidth + right.offsetLeft));
+      if (!best || sc > best.sc + .01) best = { both, multi, w, sc };
+    }
+    right.classList.toggle('both', best.both); iE && iE.classList.toggle('multi', best.multi);
+    step.classList.toggle('wide', best.both || best.multi);
+    step.style.width = best.w + 'px';
+    const sc = best.sc, w = best.w;
     step.style.transform = `translate(${Math.round((innerWidth - w * sc) / 2)}px, ${p.top}px) scale(${sc})`;
   }
   function fitOv() {

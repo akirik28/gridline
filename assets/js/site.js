@@ -57,6 +57,8 @@
     $('#step').dataset.kind = st.k;
     const box = $('#st-content'); box.innerHTML = '';
     if (st.sec) { const tpl = document.getElementById(st.sec); if (tpl) box.append(tpl.content.cloneNode(true)); }
+    // a video slot can be swapped by dropping a file at data-try (e.g. video/before-day2.mp4)
+    box.querySelectorAll('video[data-try]').forEach(v => fetch(v.dataset.try, { method: 'HEAD' }).then(r => { if (r.ok && /video/.test(r.headers.get('content-type') || '')) v.src = v.dataset.try; }).catch(() => {}));
     box.hidden = !st.sec;
     navState(); timer();
     scrollTo({ top: 0, behavior: R ? 'auto' : 'smooth' });
