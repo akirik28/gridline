@@ -210,6 +210,9 @@
     FX.zap('up'); tick();
   });
   $('#t-reset').addEventListener('click', () => setPreset($('#t-presets .on')));
+  window.GL_timerData = () => ({ label: $('#t-label').textContent, total, left: running ? (endAt - Date.now()) / 1000 : left, endAt, running });
+  ['#t-go', '#t-reset'].forEach(s => $(s).addEventListener('click', () => window.GL_boardSync && GL_boardSync('timer')));
+  $$('#t-presets button').forEach(b => b.addEventListener('click', () => window.GL_boardSync && GL_boardSync('timer')));
   $('#t-plus').addEventListener('click', () => { total += 60; left += 60; endAt += 60000; if (left > 120) warned = false; draw(); });
   draw();
 
@@ -243,6 +246,8 @@
     cards.forEach((c, i) => animate(c, { opacity: [0, 1], scale: [.3, 1], y: [-120, 0], rotate: [Math.random() * 40 - 20, 0] },
       { delay: .2 + i * .05, type: 'spring', bounce: .45 }));
     FX.zap('up'); bg && bg.surge(20);
+    window.GL_lastGroups = conf.map((c, i) => ({ L: c.L, t: c.t, c: c.c, names: cols[i] }));
+    window.GL_boardSync && GL_boardSync('groups');
   });
   function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
@@ -452,4 +457,24 @@
   requestAnimationFrame(moveInk);
 
   FX.magnetic('.btn');
+})();
+
+/* ================= board (projector link) control ================= */
+(function () {
+  const C = window.GRIDLINE, $ = (s, r = document) => r.querySelector(s);
+  const sb = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth: { persistSession: false } });
+  const pin = () => { try { return sessionStorage.getItem('glc-pin') || ''; } catch (e) { return ''; } };
+  let mode = 'step';
+  const paint = () => document.querySelectorAll('#rb-seg button').forEach(b => b.classList.toggle('on', b.dataset.bm === mode));
+  const payload = m => m === 'timer' ? (window.GL_timerData ? GL_timerData() : {}) : m === 'groups' ? { groups: window.GL_lastGroups || [] } : {};
+  async function set(m) {
+    const { error } = await sb.rpc('gridline_set_board', { p_pin: pin(), p_mode: m, p_data: payload(m) });
+    if (error) { alert('Could not change the board: ' + error.message); return; }
+    mode = m; paint();
+  }
+  // called by the timer / groups panes: only pushes if that thing is what the board shows
+  window.GL_boardSync = m => { if (mode === m) set(m); };
+  document.querySelectorAll('#rb-seg button').forEach(b => b.addEventListener('click', () => { set(b.dataset.bm); window.FX && FX.zap && FX.zap('up'); }));
+  sb.from('gridline_board').select('mode').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { mode = data.mode; paint(); } });
+  sb.channel('chair-board').on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_board' }, p => { if (p.new) { mode = p.new.mode; paint(); } }).subscribe();
 })();

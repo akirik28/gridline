@@ -158,9 +158,10 @@
   }
   whoBtn.addEventListener('click', pickName);
   let skipped = null; try { skipped = localStorage.getItem('gl-name-skip'); } catch (e) {}
-  if (!myName && !skipped) pickName();
+  if (!window.GL_BOARD && !myName && !skipped) pickName();
 
   window.GL_onEnergy = row => {
+    if (window.GL_BOARD) { window.GL_onBoardEnergy && window.GL_onBoardEnergy(row); return; }
     const nowOpen = !!row.energy_open, r = row.energy_round || 0;
     if (nowOpen && (r !== round || !open)) {
       round = r; open = true; sent = getSent(r);

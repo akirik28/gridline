@@ -9,7 +9,7 @@
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/fonts.css">
 <link rel="stylesheet" href="../assets/css/base.css?v=2">
-<link rel="stylesheet" href="chair.css?v=7">
+<link rel="stylesheet" href="chair.css?v=8">
 <link rel="stylesheet" href="../assets/css/interact.css?v=4">
 </head>
 <body>
@@ -42,6 +42,12 @@
       <button data-tab="plan" data-private><i>🗓</i><span>Plan</span></button>
       <a class="qr-link" href="../qr/" target="_blank" rel="noopener"><i>📱</i><span>QR screen ↗</span></a>
     </nav>
+    <div class="r-board">
+      <div class="rb-h mono">📺 On the board <a href="../board/" target="_blank" rel="noopener">open link ↗</a></div>
+      <div class="rb-seg" id="rb-seg">
+        <button data-bm="step" class="on">▶️ Steps</button><button data-bm="timer">⏱ Timer</button><button data-bm="groups">🃏 Groups</button><button data-bm="qr">📱 QR</button><button data-bm="blank">⬛ Blank</button>
+      </div>
+    </div>
     <div class="r-energy mono" id="r-energy" hidden>🔋 Meter open · <b>0</b></div>
     <div class="r-state mono" id="r-state"><i class="dot"></i><span>Screens free</span></div>
   </aside>
@@ -237,10 +243,10 @@
 <script src="../assets/js/config.js?v=1"></script>
 <script src="../assets/js/fx.js?v=3"></script>
 <script src="../assets/js/alert.js?v=3"></script>
-<script src="../assets/js/steps.js?v=8"></script>
+<script src="../assets/js/steps.js?v=9"></script>
 <script src="../assets/js/interact.js?v=7"></script>
 <script src="plan.js?v=1"></script>
 <script src="energy.js?v=3"></script>
-<script src="chair.js?v=6"></script>
+<script src="chair.js?v=7"></script>
 </body>
 </html>

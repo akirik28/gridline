@@ -323,3 +323,13 @@ body.pmode .gc-in input { -webkit-text-security: disc; }
 .en-p span, .en-p b { position: relative; }
 .en-p b { color: var(--c); font-family: var(--f-mono); }
 .en-miss { margin: 12px 0 0; font-size: 12px; color: var(--ink-2); }
+
+/* ---------- board control (rail) ---------- */
+.r-board { padding: 12px; border-radius: 16px; border: 2px solid transparent; background: linear-gradient(#070b16, #070b16) padding-box, linear-gradient(120deg, #3df2ff, #4dffa6, #ffe14d, #ff3d7f) border-box; }
+.rb-h { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 11px; letter-spacing: .08em; color: var(--ink-2); }
+.rb-h a { color: var(--cyan); text-decoration: none; }
+.rb-seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.rb-seg button { padding: 9px 6px; border-radius: 10px; border: 1px solid var(--line-2); background: transparent; color: var(--ink); font: 600 12.5px var(--f-sans); cursor: pointer; text-align: left; }
+.rb-seg button:first-child { grid-column: 1 / -1; }
+.rb-seg button.on { border-color: var(--cyan); background: rgba(61,242,255,.14); box-shadow: 0 0 14px rgba(61,242,255,.3); }
+.rail { overflow-y: auto; }

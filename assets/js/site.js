@@ -71,7 +71,7 @@
     });
     animate('#st-timer', { opacity: [0, 1], scaleX: [.6, 1] }, { delay: .6, duration: .6 });
     if (st.sec) enhance(box);
-    cleanup.push(GLIA.mount($('#st-ia'), view, st.ia));
+    cleanup.push(GLIA.mount($('#st-ia'), view, st.ia, { projector: !!window.GL_BOARD }));
     $$('#dr-list .dr-step').forEach(b => b.classList.toggle('cur', +b.dataset.i === view));
   }
 
@@ -121,7 +121,7 @@
     const at = new Date(row.step_at).getTime();
     if (row.step === live) { if (at !== liveAt) { liveAt = at; timer(); } return; }
     const first = live === -1;
-    const followed = view === live || first;
+    const followed = view === live || first || !!window.GL_BOARD;
     live = Math.min(row.step, N - 1); liveAt = at;
     buildDrawer();
     if (first) { view = live; if (entered) render(view); else prefill(); return; }
