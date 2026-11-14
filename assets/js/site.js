@@ -241,7 +241,7 @@
     const vid = $('#to-player', root);
     if (vid) fetch('video/itre-to.mp4', { method: 'HEAD' }).then(r => {
       if (!r.ok) return;
-      vid.src = 'video/itre-to.mp4?v=2';
+      vid.src = 'video/itre-to.mp4?v=3';
       fetch('video/itre-to-poster.jpg', { method: 'HEAD' }).then(p => { if (p.ok) vid.poster = 'video/itre-to-poster.jpg'; });
       vid.closest('.vc-screen').classList.add('has-video');
     }).catch(() => {});
