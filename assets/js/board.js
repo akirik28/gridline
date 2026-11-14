@@ -12,10 +12,20 @@
   const st = document.createElement('style');
   st.textContent = `
   html.board .nav, html.board .stepnav, html.board .drawer, html.board .cur-dot, html.board .cur-ring { display: none !important; }
-  html.board .stage { max-width: none; padding: 4vh 5vw 6vh; }
-  html.board .st-title { font-size: clamp(56px, 8vw, 150px); max-width: 18ch; }
-  html.board .st-rules { max-width: 1100px; }
-  html.board .st-rules li { font-size: clamp(20px, 2.1vw, 34px); }
+  html.board, html.board body { height: 100%; overflow: hidden !important; }
+  html.board .stage { max-width: none; margin: 0; padding: 0; position: fixed; inset: 0; overflow: hidden; }
+  html.board #step { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  html.board #step.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); column-gap: 56px; align-items: start; }
+  html.board .bd-left, html.board .bd-right { min-width: 0; position: relative; }
+  html.board .st-title { font-size: 120px; max-width: 16ch; }
+  html.board #step.two .st-title { font-size: 92px; }
+  html.board .st-rules { max-width: none; }
+  html.board .st-rules li { font-size: 30px; }
+  html.board #step.two .st-rules li { font-size: 25px; }
+  html.board .bd-right .st-content, html.board .bd-right .st-ia { margin-top: 0; }
+  html.board .bd-right .st-ia { margin-top: 0 !important; }
+  .bd-fit { transform-origin: 50% 50%; }
+  html.board #step.two .st-art { display: none; }
   .bd-ov { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 4vh 4vw; background: #04060d; }
   .bd-ov[hidden] { display: none; }
   .bd-ov::before { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 50% at 50% 50%, rgba(61,242,255,.10), transparent 70%); pointer-events: none; }
@@ -26,7 +36,7 @@
   .bd-tl { margin-top: -2vh; }
   .bd-timer.warn .bd-t { color: var(--volt); } .bd-timer.done .bd-t { color: var(--pink); animation: bdBlink 1s steps(2) infinite; }
   @keyframes bdBlink { 50% { opacity: .3; } }
-  .bd-groups { display: grid; grid-template-columns: repeat(var(--n, 4), 1fr); gap: 2vw; width: 100%; max-width: 1700px; }
+  .bd-groups { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 2vw; width: 92vw; max-width: 1700px; }
   .bd-col { padding: 2.4vh 1.6vw; border-radius: 26px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 8%, #0b1020); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 25%, transparent); }
   .bd-col h3 { margin: 0; display: flex; align-items: center; gap: 14px; font-size: clamp(24px, 2.6vw, 44px); }
   .bd-col h3 b { width: 1.6em; height: 1.6em; border-radius: 14px; display: grid; place-items: center; background: var(--c); color: #04060d; }
@@ -56,6 +66,40 @@
   const en = document.createElement('div'); en.className = 'bd-energy'; en.hidden = true;
   en.innerHTML = '<i>🔋</i><b>Grab your phone — how charged are you?</b><span></span>';
   document.body.append(ov, en);
+
+  /* ---------- fit everything to the screen ---------- */
+  const step = $('#step');
+  const left = document.createElement('div'), right = document.createElement('div');
+  left.className = 'bd-left'; right.className = 'bd-right';
+  ['#st-meta', '.st-meta', '#st-kind', '#st-title', '#st-rules', '#st-timer'].forEach(q => { const e = step.querySelector(q); if (e && e.parentNode === step) left.append(e); });
+  ['#st-content', '#st-ia'].forEach(q => { const e = step.querySelector(q); if (e) right.append(e); });
+  step.prepend(left); step.append(right);
+  const PAD = () => ({ x: Math.round(innerWidth * .04), top: Math.round(innerHeight * .045), bot: Math.round(innerHeight * (document.documentElement.classList.contains('bd-en') ? .17 : .05)) });
+  function fitStep() {
+    if (!ov.hidden) return;
+    const has = [...right.children].some(e => !e.hidden && e.childElementCount);
+    step.classList.toggle('two', has);
+    const p = PAD(), W = innerWidth - 2 * p.x, H = innerHeight - p.top - p.bot;
+    step.style.transform = 'none';
+    let w = W; step.style.width = w + 'px';
+    let h = step.offsetHeight, sc = Math.min(1, H / h);
+    if (sc < 1) { w = Math.min(W / sc, W * 1.9); step.style.width = w + 'px'; h = step.offsetHeight; sc = Math.min(1, H / h, W / w); }
+    step.style.transform = `translate(${Math.round((innerWidth - w * sc) / 2)}px, ${p.top}px) scale(${sc})`;
+  }
+  function fitOv() {
+    const el = ov.firstElementChild; if (ov.hidden || !el) return;
+    el.style.transform = 'none';
+    const p = PAD(), W = innerWidth - 2 * p.x, H = innerHeight - p.top - p.bot;
+    const sc = Math.min(1, W / el.offsetWidth, H / el.offsetHeight);
+    el.style.transformOrigin = '50% 50%';
+    el.style.transform = `translateY(${Math.round((p.top - p.bot) / 2)}px) scale(${sc})`;
+  }
+  let fitT = 0;
+  const fit = () => { clearTimeout(fitT); fitT = setTimeout(() => { fitStep(); fitOv(); }, 60); };
+  new MutationObserver(fit).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
+  addEventListener('resize', fit);
+  setInterval(() => { fitStep(); fitOv(); }, 1500);
+  window.GL_boardFit = () => { fitStep(); fitOv(); };
 
   /* ---------- modes ---------- */
   let mode = 'step', data = {}, tInt = null;
@@ -94,9 +138,10 @@
     if (same) return;
     mode = row.mode; data = row.data || {};
     clearInterval(tInt); tInt = null;
-    if (mode === 'step') { ov.hidden = true; ov.innerHTML = ''; return; }
+    if (mode === 'step') { ov.hidden = true; ov.innerHTML = ''; setTimeout(fitStep, 50); return; }
     ov.hidden = false;
     ({ timer, groups, qr, blank }[mode] || blank)();
+    requestAnimationFrame(fitOv); setTimeout(fitOv, 50);
     if (mode !== 'timer') animate(ov, { opacity: [0, 1] }, { duration: .4 });
   }
   window.GL_boardApply = apply; // handy for testing in the console
@@ -112,7 +157,7 @@
     const o = !!row.energy_open;
     if (o && !eOpen) { en.hidden = false; animate(en, { y: [80, 0], opacity: [0, 1] }, { type: 'spring', bounce: .35 }); }
     if (!o) en.hidden = true;
-    document.documentElement.classList.toggle('bd-en', o);
+    document.documentElement.classList.toggle('bd-en', o); setTimeout(() => { fitStep(); fitOv(); }, 50);
     eOpen = o; count();
   };
   setInterval(count, 3000);
