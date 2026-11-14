@@ -146,7 +146,7 @@
   // games stay hidden on phones + board until the chair starts them
   let iaOpenNow = -1;
   function paintGo() {
-    window.GL_paintStart && setTimeout(GL_paintStart, 0); const on = iaOpenNow >= curStep; const b = $('#ls-ia-go'); b.textContent = on ? '■ Hide game' : '▶ Start game'; b.classList.toggle('green', !on); b.classList.toggle('pink', on); $('#ls-ia-wrap').classList.toggle('waiting', !on); }
+    window.GL_paintStart && setTimeout(GL_paintStart, 0); window.GL_paintBpage && setTimeout(GL_paintBpage, 0); const on = iaOpenNow >= curStep; const b = $('#ls-ia-go'); b.textContent = on ? '■ Hide game' : '▶ Start game'; b.classList.toggle('green', !on); b.classList.toggle('pink', on); $('#ls-ia-wrap').classList.toggle('waiting', !on); }
   window.GL_iaOpen = v => { iaOpenNow = v; paintGo(); };
   window.GL_iaOn = () => iaOpenNow >= curStep;
   $('#ls-ia-go').addEventListener('click', async () => {
@@ -515,7 +515,7 @@
   const curPage = () => (mode === 'step' && bstep === window.GL_curStep) ? bpage : 0;
   window.GL_paintBpage = () => {
     const b = $('#ls-bpage'); if (!b) return;
-    const st = GL_STEPS[window.GL_curStep]; b.hidden = !(st && (st.sec || st.ia));
+    const st = GL_STEPS[window.GL_curStep]; b.hidden = !(st && (st.sec || (st.ia && window.GL_iaOn && GL_iaOn())));
     b.textContent = curPage() === 1 ? '📺 Board: ← Rules' : '📺 Board: Continue →';
   };
   window.GL_boardPage = async n => {
