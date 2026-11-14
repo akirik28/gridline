@@ -492,17 +492,27 @@
   // called by the timer / groups panes: only pushes if that thing is what the board shows
   window.GL_boardSync = m => { if (mode === m) set(m); };
   // ▶ Start on every step: phone games open (board -> game page); other steps get a big countdown on the board
-  let tStep = -1;
+  let tStep = -1, dbStep = -1, dbIdx = -1;
   // unlocking the next step brings the board back from a step timer
   window.GL_onStepChanged = () => { if (mode === 'timer' && tStep >= 0 && tStep !== window.GL_curStep) { set('step'); tStep = -1; } };
   window.GL_paintStart = () => {
     const st = GL_STEPS[window.GL_curStep], b = $('#ls-start'); if (!st || !b) return;
     const on = st.ia ? !!(window.GL_iaOn && GL_iaOn()) : (mode === 'timer' && tStep === window.GL_curStep);
+    if (st.debrief) {
+      const n = st.debrief.length, i = dbStep === window.GL_curStep ? dbIdx : -1;
+      b.textContent = i < 0 ? `🗣 Start debrief · 1/${n}` : i < n - 1 ? `Next question · ${i + 2}/${n} →` : '■ Close debrief';
+      b.classList.toggle('green', i < n - 1); b.classList.toggle('pink', i >= n - 1); return;
+    }
     b.textContent = st.ia ? (on ? '■ Hide game' : '▶ Start game') : (on ? '■ Stop timer' : `▶ Start · ${st.m} min on board`);
     b.classList.toggle('green', !on); b.classList.toggle('pink', on);
   };
   $('#ls-start').addEventListener('click', async () => {
     const st = GL_STEPS[window.GL_curStep]; if (!st) return;
+    if (st.debrief) {
+      if (dbStep !== window.GL_curStep) { dbStep = window.GL_curStep; dbIdx = -1; }
+      if (dbIdx >= st.debrief.length - 1) { window.GL_meterClose && await GL_meterClose(); dbIdx = -1; dbStep = -1; GL_paintStart(); return; }
+      dbIdx++; window.GL_debriefAsk && await GL_debriefAsk(st.debrief[dbIdx]); GL_paintStart(); return;
+    }
     if (st.ia) { $('#ls-ia-go').click(); return; }
     if (mode === 'timer' && tStep === window.GL_curStep) { await set('step'); tStep = -1; GL_paintStart(); return; }
     const secs = st.m * 60;

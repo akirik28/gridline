@@ -72,6 +72,8 @@
   }
   $('#en-open').addEventListener('click', () => set(true));
   $('#db-open').addEventListener('click', () => set(true, 'debrief'));
+  window.GL_debriefAsk = async q => { $('#db-q').value = q; await set(true, 'debrief'); };
+  window.GL_meterClose = () => set(false);
   $('#en-close').addEventListener('click', () => set(false));
 
   const box = $('#en-pane');
