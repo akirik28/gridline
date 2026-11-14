@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Gridline · Chair Console</title>
+<meta name="theme-color" content="#04060d">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/base.css?v=2">
+<link rel="stylesheet" href="chair.css?v=3">
+</head>
+<body>
+<canvas id="grid-bg" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<!-- PIN gate -->
+<div class="gate" id="gate">
+  <form class="gate-box" id="gate-form" autocomplete="off">
+    <div class="g-logo">GRIDLINE</div>
+    <p class="mono kicker">Chair console · ITRE</p>
+    <label class="sr" for="pin">Chair PIN</label>
+    <input id="pin" class="pin" type="password" inputmode="text" placeholder="• • • • • • • •" autocomplete="off" maxlength="32" required>
+    <button class="btn solid" type="submit">Power on ⚡</button>
+    <p class="gate-err mono" id="gate-err"></p>
+  </form>
+</div>
+
+<div class="app" id="app" hidden>
+  <aside class="rail">
+    <div class="r-brand">GRIDLINE<small class="mono">CHAIR</small></div>
+    <nav class="tabs" id="tabs">
+      <button data-tab="steps" class="on"><i>▶️</i><span>Live steps</span></button>
+      <button data-tab="broadcast"><i>📡</i><span>Broadcast</span></button>
+      <button data-tab="timer"><i>⏱</i><span>Timer</span></button>
+      <button data-tab="groups"><i>🃏</i><span>Groups</span></button>
+      <button data-tab="board"><i>🏦</i><span>Board</span></button>
+      <button data-tab="crisis"><i>⚡</i><span>Grid Crisis</span></button>
+      <button data-tab="plan"><i>🗓</i><span>Plan</span></button>
+    </nav>
+    <div class="r-state mono" id="r-state"><i class="dot"></i><span>Screens free</span></div>
+  </aside>
+
+  <main class="stage">
+
+    <!-- ===== LIVE STEPS ===== -->
+    <section class="pane on" data-pane="steps">
+      <header class="p-head"><h1>Live steps</h1><p>Every delegate sees only what you unlock. Press → (or the big button) to open the next step.</p></header>
+      <div class="ls-top">
+        <div class="ls-now" id="ls-now">
+          <span class="mono kicker" id="ls-meta">On every screen now</span>
+          <h2 id="ls-title">—</h2>
+          <p class="mono muted" id="ls-since"></p>
+        </div>
+        <div class="ls-ctrl">
+          <button class="btn ghost big" id="ls-prev">← Back</button>
+          <button class="btn solid big" id="ls-next">Unlock next →</button>
+        </div>
+      </div>
+      <div class="ls-up mono" id="ls-up"></div>
+      <div class="ls-list" id="ls-list"></div>
+    </section>
+
+    <!-- ===== BROADCAST ===== -->
+    <section class="pane" data-pane="broadcast">
+      <header class="p-head"><h1>Broadcast</h1><p>Take over every delegate's screen. Nobody can close it — only you.</p></header>
+      <div class="status-card" id="status-card">
+        <div><span class="mono kicker">Now on every screen</span><h2 id="st-title">Nothing — screens are free</h2><p class="mono muted" id="st-meta"></p></div>
+        <button class="btn green big" id="release" disabled>Release all screens</button>
+      </div>
+      <div class="presets">
+        <article class="preset" data-kind="gather" style="--c:#3df2ff">
+          <div class="pr-ic">🧲</div><h3>Gather in the middle</h3>
+          <label class="mono">Meeting time <input type="time" id="gather-time"></label>
+          <button class="btn solid send">Send</button>
+        </article>
+        <article class="preset" data-kind="break" style="--c:#ffe14d">
+          <div class="pr-ic">⏰</div><h3>Break is over</h3><p class="muted">"Back to your seats" + voice.</p>
+          <button class="btn volt send">Send</button>
+        </article>
+        <article class="preset" data-kind="phones" style="--c:#ff3d7f">
+          <div class="pr-ic">📵</div><h3>Phones down</h3><p class="muted">"Phones down. Eyes up." + voice.</p>
+          <button class="btn pink send">Send</button>
+        </article>
+        <article class="preset" data-kind="lock" style="--c:#9b7bff">
+          <div class="pr-ic">🔒</div><h3>Lock screens</h3><p class="muted">Silent. "Eyes on the chair".</p>
+          <button class="btn send" style="--c:#9b7bff">Lock</button>
+        </article>
+        <article class="preset wide" data-kind="custom" style="--c:#4dffa6">
+          <div class="pr-ic">✍️</div><h3>Custom message</h3>
+          <input id="c-title" maxlength="140" placeholder="Big text (e.g. 5 MINUTES LEFT)">
+          <input id="c-body" maxlength="400" placeholder="Small text (optional)">
+          <label class="mono">Time (optional) <input type="time" id="c-time"></label>
+          <button class="btn green send">Send</button>
+        </article>
+      </div>
+      <p class="mono muted small">Delegates must have the site open (tab can be in the background — it catches up when they come back). Sound plays only after they tapped "plug in" once.</p>
+    </section>
+
+    <!-- ===== TIMER ===== -->
+    <section class="pane" data-pane="timer">
+      <header class="p-head"><h1>Rotation timer</h1><p>Put it on the projector. Last 2 minutes = warning.</p></header>
+      <div class="timer" id="timer">
+        <svg viewBox="0 0 400 400" aria-hidden="true"><circle class="t-track" cx="200" cy="200" r="180"/><circle class="t-run" id="t-run" cx="200" cy="200" r="180"/></svg>
+        <div class="t-mid"><div class="t-label mono" id="t-label">WRITING IN GROUPS</div><div class="t-time mono" id="t-time">20:00</div><div class="t-sub mono" id="t-sub">ready</div></div>
+      </div>
+      <div class="t-ctrl">
+        <div class="seg" id="t-presets">
+          <button data-m="10" data-l="BRAINSTORM">10</button><button data-m="3" data-l="SPLIT INTO GROUPS">3</button>
+          <button data-m="20" data-l="WRITING IN GROUPS" class="on">20</button><button data-m="12" data-l="BANK · HOSPITAL · GRAVEYARD">12</button>
+          <button data-m="5" data-l="BREAK">5</button><button data-m="1.5" data-l="PRESENT · 90 s">1.5</button>
+        </div>
+        <div class="t-btns"><button class="btn solid big" id="t-go">Start</button><button class="btn ghost" id="t-reset">Reset</button><button class="btn ghost" id="t-plus">+1 min</button><button class="btn ghost fs" data-fs="timer">⛶ Fullscreen</button></div>
+      </div>
+    </section>
+
+    <!-- ===== GROUPS ===== -->
+    <section class="pane" data-pane="groups">
+      <header class="p-head"><h1>Random groups</h1><p>Shuffle the A/B/C/D cards. Every round, new mix.</p></header>
+      <div class="g-in">
+        <textarea id="g-names" rows="4" placeholder="Delegate names, one per line or comma separated (saved on this device)"></textarea>
+        <div class="g-side">
+          <p class="mono muted" id="g-rule"></p>
+          <button class="btn volt big" id="g-shuffle">Shuffle ⚡</button>
+          <button class="btn ghost fs" data-fs="groups-out">⛶ Fullscreen</button>
+        </div>
+      </div>
+      <div class="g-out" id="groups-out"></div>
+    </section>
+
+    <!-- ===== BOARD ===== -->
+    <section class="pane" data-pane="board">
+      <header class="p-head"><h1>Bank · Hospital · Graveyard</h1><p>Drag each idea into a box. Hospital ideas go to the next round.</p></header>
+      <form class="b-add" id="b-add"><input id="b-text" maxlength="160" placeholder="Type an idea / clause and press Enter"><select id="b-grp"><option>A</option><option>B</option><option>C</option><option>D</option></select><button class="btn solid">Add</button></form>
+      <div class="board" id="board">
+        <div class="col inbox" data-col="inbox"><h3>📥 New <span class="n"></span></h3><div class="drop"></div></div>
+        <div class="col bank" data-col="bank"><h3>🏦 Bank <span class="n"></span></h3><div class="drop"></div></div>
+        <div class="col hosp" data-col="hosp"><h3>🏥 Hospital <span class="n"></span></h3><div class="drop"></div></div>
+        <div class="col grave" data-col="grave"><h3>⚰️ Graveyard <span class="n"></span></h3><div class="drop"></div></div>
+      </div>
+      <div class="b-foot"><span class="mono muted" id="b-round">Round 1</span><button class="btn ghost" id="b-next">Next round → Hospital back to New</button><button class="btn ghost fs" data-fs="board">⛶ Fullscreen</button><button class="btn ghost pink" id="b-clear">Clear board</button></div>
+    </section>
+
+    <!-- ===== GRID CRISIS ===== -->
+    <section class="pane" data-pane="crisis">
+      <header class="p-head"><h1>Grid Crisis: Blackout</h1><p>Projector panel. Enter the secret MW, then reveal.</p></header>
+      <div class="gc" id="gc">
+        <div class="gc-top">
+          <div class="gc-round mono">ROUND <b id="gc-r">1</b></div>
+          <div class="gc-cap mono">CAPACITY <b id="gc-capv">100</b> MW</div>
+        </div>
+        <div class="gc-bar" id="gc-bar">
+          <span class="seg-t" id="gc-t"></span><span class="seg-c" id="gc-c"></span>
+          <i class="gc-line" id="gc-line"></i>
+          <div class="gc-read mono" id="gc-read">0 MW</div>
+        </div>
+        <div class="gc-in">
+          <label style="--c:#3df2ff"><span>TechNova draws</span><input type="number" id="gc-tin" min="0" max="200" inputmode="numeric" placeholder="MW"></label>
+          <label style="--c:#ffe14d"><span>The City draws</span><input type="number" id="gc-cin" min="0" max="200" inputmode="numeric" placeholder="MW"></label>
+          <button class="btn pink big" id="gc-reveal">Reveal ⚡</button>
+        </div>
+        <div class="gc-events">
+          <span class="mono muted">Capacity events</span>
+          <button data-d="-15">🔥 Heatwave −15</button><button data-d="-10">🛠 Maintenance −10</button>
+          <button data-d="10">☀️ Solar noon +10</button><button data-d="20">🌬 Wind surge +20</button><button data-d="0" data-reset>↺ 100</button>
+        </div>
+        <div class="gc-score" id="gc-score"></div>
+        <div class="gc-foot"><button class="btn ghost" id="gc-next">Next round →</button><button class="btn ghost fs" data-fs="gc">⛶ Fullscreen</button><button class="btn ghost pink" id="gc-new">New game</button></div>
+      </div>
+    </section>
+
+    <!-- ===== PLAN ===== -->
+    <section class="pane" data-pane="plan">
+      <header class="p-head"><h1>Today's plan</h1><p id="pl-sub">Only you can see this.</p></header>
+      <div class="pl-days" id="pl-days"></div>
+      <div class="pl-now" id="pl-now"></div>
+      <div class="pl-blocks" id="pl-blocks"></div>
+      <div class="pl-cut">
+        <div><h3>✂️ Cut order</h3><ol id="pl-cut"></ol></div>
+        <div><h3>🛡 Never cut</h3><ul id="pl-never"></ul></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="gc-blackout" id="gc-blackout"><b>BLACKOUT</b><span class="mono">TOTAL DEMAND EXCEEDED CAPACITY</span></div>
+
+<script>window.GL_BASE = '../';</script>
+<script src="../assets/js/motion.js"></script>
+<script src="../assets/js/supabase.js"></script>
+<script src="../assets/js/config.js?v=1"></script>
+<script src="../assets/js/fx.js?v=3"></script>
+<script src="../assets/js/alert.js?v=2"></script>
+<script src="../assets/js/steps.js?v=2"></script>
+<script src="plan.js?v=1"></script>
+<script src="chair.js?v=3"></script>
+</body>
+</html>

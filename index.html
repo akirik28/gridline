@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gridline · ITRE · EYP Mersin 2026</title>
+<meta name="description" content="Gridline — the ITRE committee hub for EYP Türkiye, Mersin 2026: topic, key terms, the Grid Crisis game, how we work and how to write a resolution.">
+<meta name="theme-color" content="#04060d">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/base.css?v=2">
+<link rel="stylesheet" href="assets/css/site.css?v=3">
+</head>
+<body>
+<canvas id="grid-bg" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="progress" aria-hidden="true"><span></span></div>
+
+<!-- ============ SPLASH: plug in (unlocks sound for live alerts) ============ -->
+<div id="splash" class="splash">
+  <div class="sp-core">
+    <div class="sp-meter mono"><span id="sp-pct">000</span><small>MW</small></div>
+    <button id="plug" class="plug" aria-label="Plug in and enter Gridline">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M36 4 14 36h16l-4 24 24-34H34z"/></svg>
+    </button>
+    <p class="sp-hint mono">tap to plug in</p>
+    <p class="sp-sub">Turn your sound on — your chair may call you through this screen.</p>
+  </div>
+</div>
+
+<!-- ============ TOP BAR ============ -->
+<header class="nav" id="nav">
+  <a class="brand" href="#" aria-label="Gridline">
+    <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M4 8h24M4 16h24M4 24h24M8 4v24M16 4v24M24 4v24" /><circle cx="16" cy="16" r="3.2"/></svg>
+    <span>GRIDLINE</span>
+  </a>
+  <span class="day-chip mono" id="day-chip"></span>
+  <span class="live chip"><i class="dot"></i><span id="live-txt">LIVE</span></span>
+  <button class="steps-btn" id="steps-btn" aria-label="All steps" aria-expanded="false"><span class="mono" id="step-count">01/47</span><i></i><i></i><i></i></button>
+</header>
+
+<!-- ============ STAGE: one step at a time ============ -->
+<main class="stage" id="stage">
+  <article class="step" id="step" aria-live="polite">
+    <div class="st-meta mono"><span id="st-day"></span><span id="st-time"></span><span id="st-num"></span></div>
+    <div class="st-kind mono" id="st-kind"></div>
+    <h1 class="st-title" id="st-title"></h1>
+    <ol class="st-rules" id="st-rules"></ol>
+    <div class="st-timer" id="st-timer"><div class="stt-bar"><span id="stt-fill"></span></div><span class="mono" id="stt-txt"></span></div>
+    <div class="st-content" id="st-content"></div>
+  </article>
+</main>
+
+<nav class="stepnav" aria-label="Step navigation">
+  <button class="sn-btn" id="sn-prev" aria-label="Previous step">←</button>
+  <button class="sn-live mono" id="sn-live">● Back to live step</button>
+  <button class="sn-btn" id="sn-next" aria-label="Next step">→</button>
+</nav>
+
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="dr-head"><b>The journey</b><button class="dr-x" id="dr-x" aria-label="Close">×</button></div>
+  <div class="dr-list" id="dr-list"></div>
+</aside>
+<div class="scrim" id="scrim"></div>
+
+<div class="unlock" id="unlock" aria-hidden="true"><span class="mono">STEP UNLOCKED</span><b id="unlock-n">01</b></div>
+<div class="blackout" id="blackout" aria-hidden="true"><b>BLACKOUT</b></div>
+
+<template id="tpl-welcome">
+  <div class="wel">
+    <h2 class="hero-title" data-hero>GRIDLINE</h2>
+    <p class="hero-sub">The <b>ITRE</b> committee — Industry, Research &amp; Energy</p>
+    <p class="hero-q">AI is hungry. Data centres are eating Europe's electricity.<br><span class="hl">Who gets the power?</span></p>
+    <div class="stats">
+      <div class="stat"><b data-count="4">0</b><span>days</span></div>
+      <div class="stat"><b data-count="4">0</b><span>key conflicts</span></div>
+      <div class="stat"><b data-count="100">0</b><span>MW in the game</span></div>
+      <div class="stat"><b data-count="1">0</b><span>resolution</span></div>
+    </div>
+    <div class="chair-card tilt reveal-up">
+    <div class="cc-avatar" aria-hidden="true"><span>AS</span><i></i></div>
+    <div>
+      <div class="mono kicker">Your chair</div>
+      <h3>Ada Sarp Kırık</h3>
+      <p>Chairperson · ITRE. Ask me anything, anytime — that is literally my job.</p>
+    </div>
+  </div>
+
+  </div>
+</template>
+<template id="tpl-program">
+  <div class="days">
+    <article class="day tilt" data-date="2026-11-15">
+      <div class="day-top mono"><span>DAY 1 · SUN 15 NOV</span><em class="now-pill">NOW</em></div>
+      <h3>Teambuilding</h3>
+      <p class="day-phase">I → You → Conflict → We</p>
+      <ul class="slots mono">
+        <li><b>10:00</b> General teambuilding</li>
+        <li><b>11:00</b> Committee teambuilding</li>
+        <li><b>17:45</b> Opening Ceremony</li>
+      </ul>
+      <div class="day-bar"><span></span></div>
+    </article>
+    <article class="day tilt" data-date="2026-11-16">
+      <div class="day-top mono"><span>DAY 2 · MON 16 NOV</span><em class="now-pill">NOW</em></div>
+      <h3>Committee Work I</h3>
+      <p class="day-phase">Understand → Play → Problems</p>
+      <ul class="slots mono">
+        <li><b>09:00</b> Topic video + key terms</li>
+        <li><b>11:20</b> Grid Crisis: Blackout</li>
+        <li><b>18:15</b> Eurovillage · 19:15 EYP 101</li>
+      </ul>
+      <div class="day-bar"><span></span></div>
+    </article>
+    <article class="day tilt" data-date="2026-11-17">
+      <div class="day-top mono"><span>DAY 3 · TUE 17 NOV</span><em class="now-pill">NOW</em></div>
+      <h3>Committee Work II</h3>
+      <p class="day-phase">Solutions → Clauses → Final text</p>
+      <ul class="slots mono">
+        <li><b>09:00</b> Operative clauses</li>
+        <li><b>14:15</b> Resolution typing + check</li>
+        <li><b>19:00</b> Euroconcert</li>
+      </ul>
+      <div class="day-bar"><span></span></div>
+    </article>
+    <article class="day tilt" data-date="2026-11-18">
+      <div class="day-top mono"><span>DAY 4 · WED 18 NOV</span><em class="now-pill">NOW</em></div>
+      <h3>General Assembly</h3>
+      <p class="day-phase">Defend → Debate → Vote</p>
+      <ul class="slots mono">
+        <li><b>08:20</b> Shuttle leaves</li>
+        <li><b>08:50</b> GA opens · Toroslar Campus</li>
+        <li><b>17:00</b> Closing Ceremony</li>
+      </ul>
+      <div class="day-bar"><span></span></div>
+    </article>
+  </div>
+  <p class="note mono">Committee sessions: 09:00–11:00 · 11:15–13:15 · 14:15–16:15 · 16:45–18:15 (Day 1: 11:00–17:15)</p>
+</template>
+<template id="tpl-topic">
+  <blockquote class="topic-q reveal-up">
+    <span class="mono kicker">ITRE · Topic question</span>
+    <p><b>Powering the Cloud:</b> with the electricity demand of data centres in the EU set to rise sharply by 2030, largely driven by AI, how should the EU balance its <em>digital competitiveness</em> with its <em>climate targets</em>, <em>grid stability</em> and the interests of <em>local communities</em>?</p>
+  </blockquote>
+
+  <div class="facts">
+    <div class="fact tilt reveal-up">
+      <div class="fact-n"><b data-count="415">0</b><small>TWh</small></div>
+      <p>Electricity used by data centres worldwide in 2024 — about <b>1.5%</b> of all electricity on Earth.</p>
+      <span class="src mono">Source: IEA, Energy and AI (2025)</span>
+    </div>
+    <div class="fact tilt reveal-up">
+      <div class="fact-n"><span>×</span><b data-count="2">0</b></div>
+      <p>The IEA expects that to roughly <b>double by 2030</b> (to around 945 TWh) — AI is the main driver.</p>
+      <span class="src mono">Source: IEA, Energy and AI (2025)</span>
+    </div>
+    <div class="fact tilt reveal-up">
+      <div class="fact-n"><span>~</span><b data-count="21">0</b><small>%</small></div>
+      <p>Share of Ireland's metered electricity used by data centres in 2023. One country, one sector, one fifth.</p>
+      <span class="src mono">Source: CSO Ireland (2024)</span>
+    </div>
+  </div>
+
+  <div class="video-card reveal-up" id="to-video">
+    <div class="vc-screen">
+      <video id="to-player" controls playsinline preload="none" poster=""></video>
+      <div class="vc-placeholder" id="vc-ph">
+        <div class="vc-play" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+        <p class="mono">TOPIC OVERVIEW VIDEO</p>
+        <h3>Premieres Monday · 09:30</h3>
+        <p class="muted">Watch it together in committee. It lands here afterwards.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flow-explain reveal-up">
+    <h3 class="h3">How a data centre turns into a political problem</h3>
+    <ol class="chain">
+      <li><b>AI boom</b><span>Training and running AI models needs huge amounts of computing.</span></li>
+      <li><b>More data centres</b><span>Companies build bigger sites, often near big cities and cables.</span></li>
+      <li><b>Grid pressure</b><span>One large site can need as much power as a small city — the cables and substations can't keep up.</span></li>
+      <li><b>Conflict</b><span>Households, factories, renewables and data centres all want the same limited connection capacity.</span></li>
+      <li><b>Policy</b><span>That's where you come in: the EU has to decide the rules.</span></li>
+    </ol>
+  </div>
+</template>
+<template id="tpl-eu">
+  <div class="eu-wrap">
+    <svg class="eu-svg" viewBox="0 0 800 460" aria-hidden="true">
+      <defs>
+        <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#3df2ff"/></marker>
+      </defs>
+      <path class="eu-link" d="M400 120 L 190 330" marker-end="url(#arr)"/>
+      <path class="eu-link" d="M400 120 L 610 330" marker-end="url(#arr)"/>
+      <path class="eu-link two" d="M260 380 L 540 380"/>
+      <circle class="eu-spark" r="5"><animateMotion dur="2.4s" repeatCount="indefinite" path="M400 120 L 190 330"/></circle>
+      <circle class="eu-spark" r="5"><animateMotion dur="2.4s" begin="1.2s" repeatCount="indefinite" path="M400 120 L 610 330"/></circle>
+      <circle class="eu-spark v" r="5"><animateMotion dur="3s" repeatCount="indefinite" path="M260 380 L 540 380 L 260 380"/></circle>
+    </svg>
+    <div class="eu-node n1 tilt"><span class="mono">PROPOSES</span><h4>European Commission</h4><p>The EU's "government". The only one that can propose new laws, and it makes sure countries follow them.</p></div>
+    <div class="eu-node n2 tilt"><span class="mono">DECIDES · CITIZENS</span><h4>European Parliament</h4><p>720 MEPs elected by you (well, by adults). Amends and approves laws. ITRE is one of its committees!</p></div>
+    <div class="eu-node n3 tilt"><span class="mono">DECIDES · COUNTRIES</span><h4>Council of the EU</h4><p>Ministers from the 27 member states. Must agree with Parliament for a law to pass.</p></div>
+  </div>
+  <div class="tools-row">
+    <div class="tool-card reveal-up"><b>Regulation</b><p>Applies directly in all 27 countries, word for word. Strong and uniform.</p></div>
+    <div class="tool-card reveal-up"><b>Directive</b><p>Sets the goal; each country writes its own law to reach it. Flexible.</p></div>
+    <div class="tool-card reveal-up"><b>Recommendation</b><p>Not binding. A polite "please do this". Weak but easy to agree on.</p></div>
+    <div class="tool-card reveal-up"><b>Funding</b><p>Money talks: EU programmes can reward the behaviour you want.</p></div>
+  </div>
+</template>
+<template id="tpl-terms">
+  <div class="terms" id="terms-grid"></div>
+</template>
+<template id="tpl-conflicts">
+  <div class="conflicts">
+    <article class="conflict tilt" style="--c:#3df2ff">
+      <div class="cf-letter">A</div>
+      <h3>Competitiveness <i>vs</i> climate</h3>
+      <div class="beam"><span class="l">More AI in Europe</span><span class="pivot"></span><span class="r">Climate neutral by 2050</span></div>
+      <p>The EU wants its own AI and cloud industry instead of depending on the US and China. But every new data centre needs clean power that is also wanted by homes, trains and heat pumps.</p>
+      <p class="ask mono">Ask: Should growth wait for clean energy — or the other way round?</p>
+    </article>
+    <article class="conflict tilt" style="--c:#ffe14d">
+      <div class="cf-letter">B</div>
+      <h3>The grid <i>&amp;</i> local people</h3>
+      <div class="beam"><span class="l">Jobs, tax, investment</span><span class="pivot"></span><span class="r">Power, water, land, noise</span></div>
+      <p>A data centre brings investment but few jobs, uses grid capacity, sometimes water for cooling, and land. Dublin and Amsterdam have at times paused new data-centre connections.</p>
+      <p class="ask mono">Ask: Who should be first in the queue for the grid?</p>
+    </article>
+    <article class="conflict tilt" style="--c:#ff3d7f">
+      <div class="cf-letter">C</div>
+      <h3>Transparency <i>vs</i> trade secrets</h3>
+      <div class="beam"><span class="l">Public right to know</span><span class="pivot"></span><span class="r">Company secrets</span></div>
+      <p>The EU now asks big data centres to report their energy and water use. Companies say detailed numbers reveal business secrets; citizens say you can't fix what you can't see.</p>
+      <p class="ask mono">Ask: What exactly should be public, and to whom?</p>
+    </article>
+    <article class="conflict tilt" style="--c:#4dffa6">
+      <div class="cf-letter">D</div>
+      <h3>Voluntary <i>vs</i> binding</h3>
+      <div class="beam"><span class="l">Industry pledges</span><span class="pivot"></span><span class="r">Hard EU law</span></div>
+      <p>The industry signed a voluntary Climate Neutral Data Centre Pact. Some countries (like Germany) set binding efficiency limits. Is a promise enough?</p>
+      <p class="ask mono">Ask: Carrot, stick — or both?</p>
+    </article>
+  </div>
+  <div class="already reveal-up">
+    <h3 class="h3">What already exists (don't reinvent it — build on it)</h3>
+    <div class="ex-grid">
+      <div><b>Energy Efficiency Directive (2023)</b><span>Data centres from 500 kW must report energy, water and waste-heat data every year to an EU database.</span></div>
+      <div><b>Climate Neutral Data Centre Pact (2021)</b><span>Voluntary industry pledge: climate-neutral data centres by 2030.</span></div>
+      <div><b>German Energy Efficiency Act (2023)</b><span>National, binding efficiency and waste-heat rules for data centres.</span></div>
+      <div><b>AI Continent Action Plan (2025)</b><span>The Commission wants much more AI computing capacity in Europe — "AI gigafactories".</span></div>
+    </div>
+  </div>
+</template>
+<template id="tpl-game">
+  <div class="game-hero reveal-up">
+    <div class="gh-meter">
+      <div class="gh-bar"><span id="demo-fill"></span><i class="gh-cap"></i></div>
+      <div class="gh-read mono"><b id="demo-mw">0</b> / 100 MW</div>
+    </div>
+    <p class="gh-txt">Every round: negotiate in the open, then secretly write how many MW you draw. If the total goes over capacity — <b class="blk">BLACKOUT</b>. Lights off. Everyone loses.</p>
+    <button class="btn pink" id="demo-btn">Try a blackout ⚡</button>
+  </div>
+  <div class="roles">
+    <div class="role tilt reveal-up" style="--c:#3df2ff"><span class="mono">DRAWS POWER</span><h4>TechNova</h4><p>A tech giant building an AI data centre. Wants as much power as possible.</p></div>
+    <div class="role tilt reveal-up" style="--c:#ffe14d"><span class="mono">DRAWS POWER</span><h4>The City</h4><p>Homes, hospitals, schools, trams. Needs power to keep people safe.</p></div>
+    <div class="role tilt reveal-up" style="--c:#9b7bff"><span class="mono">HAS A POWER</span><h4>Grid Operator</h4><p>Keeps the lights on. Can change the rules of the game.</p></div>
+    <div class="role tilt reveal-up" style="--c:#4dffa6"><span class="mono">HAS A POWER</span><h4>Climate NGO</h4><p>Speaks for the planet. Can put pressure on the others.</p></div>
+  </div>
+</template>
+<template id="tpl-work">
+  <div class="cycle-wrap">
+    <div class="cycle" id="cycle">
+      <svg viewBox="0 0 400 400" aria-hidden="true">
+        <circle class="cy-track" cx="200" cy="200" r="150"/>
+        <circle class="cy-run" id="cy-run" cx="200" cy="200" r="150"/>
+      </svg>
+      <div class="cy-step s1"><b>1</b><span>Brainstorm together</span><em class="mono">10 min</em></div>
+      <div class="cy-step s2"><b>2</b><span>Random groups (cards)</span><em class="mono">3 min</em></div>
+      <div class="cy-step s3"><b>3</b><span>Write in groups</span><em class="mono">20 min</em></div>
+      <div class="cy-step s4"><b>4</b><span>Present + sort</span><em class="mono">12 min</em></div>
+      <div class="cy-center"><span class="mono">ONE ROUND</span><b>45</b><span class="mono">MINUTES</span></div>
+    </div>
+    <div class="bhg">
+      <div class="bhg-card tilt" style="--c:#4dffa6"><div class="bhg-ic">🏦</div><h4>Bank</h4><p>Good as it is. We keep it.</p></div>
+      <div class="bhg-card tilt" style="--c:#ffe14d"><div class="bhg-ic">🏥</div><h4>Hospital</h4><p>Good idea, needs fixing. Goes to the next round.</p></div>
+      <div class="bhg-card tilt" style="--c:#ff3d7f"><div class="bhg-ic">⚰️</div><h4>Graveyard</h4><p>Doesn't work. We let it go — no hard feelings.</p></div>
+    </div>
+  </div>
+  <div class="steps reveal-up">
+    <div><span class="mono">01</span>Problems</div><i></i>
+    <div><span class="mono">02</span>"because…"</div><i></i>
+    <div><span class="mono">03</span>Aim statement</div><i></i>
+    <div><span class="mono">04</span>"by…"</div><i></i>
+    <div><span class="mono">05</span>Clauses</div><i></i>
+    <div><span class="mono">06</span>Resolution</div>
+  </div>
+</template>
+<template id="tpl-bhg"><div class="bhg-solo"><div class="bhg">
+      <div class="bhg-card tilt" style="--c:#4dffa6"><div class="bhg-ic">🏦</div><h4>Bank</h4><p>Good as it is. We keep it.</p></div>
+      <div class="bhg-card tilt" style="--c:#ffe14d"><div class="bhg-ic">🏥</div><h4>Hospital</h4><p>Good idea, needs fixing. Goes to the next round.</p></div>
+      <div class="bhg-card tilt" style="--c:#ff3d7f"><div class="bhg-ic">⚰️</div><h4>Graveyard</h4><p>Doesn't work. We let it go — no hard feelings.</p></div>
+    </div></div></template>
+<template id="tpl-anatomy"><div class="reso-anatomy">
+    <div class="ra tilt reveal-up"><span class="mono">AIM STATEMENT</span><p>3–4 sentences: what Europe should look like if our resolution works.</p></div>
+    <div class="ra tilt reveal-up"><span class="mono">INTRODUCTORY CLAUSES</span><p>The problems, each with a "because". <i>Why</i> is this a problem?</p></div>
+    <div class="ra tilt reveal-up"><span class="mono">OPERATIVE CLAUSES</span><p>The solutions, each answering a problem "by" doing something concrete.</p></div>
+  </div>
+
+  </template>
+<template id="tpl-lego"><div class="lego reveal-up" id="lego">
+    <h3 class="h3">The Lego builder <span class="mono muted">— click the blocks</span></h3>
+    <div class="lego-row">
+      <div class="lego-col" data-k="verb"><span class="mono">VERB</span></div>
+      <div class="lego-col" data-k="who"><span class="mono">WHO</span></div>
+      <div class="lego-col" data-k="what"><span class="mono">WHAT</span></div>
+      <div class="lego-col" data-k="how"><span class="mono">HOW</span></div>
+      <div class="lego-col" data-k="why"><span class="mono">IN ORDER TO</span></div>
+    </div>
+    <div class="lego-out" id="lego-out" aria-live="polite"></div>
+    <button class="btn volt" id="lego-shuffle">Shuffle ⚡</button>
+  </div>
+
+  <div class="verbs reveal-up">
+    <h3 class="h3">Operative verbs that work</h3>
+    <div class="verb-cloud" id="verbs"></div>
+  </div>
+
+  </template>
+<template id="tpl-check"><div class="check reveal-up" id="checklist">
+    <h3 class="h3">Final check (before we hand it in)</h3>
+    <div class="check-cols">
+      <div><h4 class="mono">1 · CONTENT</h4>
+        <label><input type="checkbox">Every problem has a "because"</label>
+        <label><input type="checkbox">Every operative clause answers a problem</label>
+        <label><input type="checkbox">Each clause names WHO acts</label>
+        <label><input type="checkbox">No clause asks for something the EU can't do</label>
+      </div>
+      <div><h4 class="mono">2 · LANGUAGE</h4>
+        <label><input type="checkbox">British English (prioritise, programme, centre)</label>
+        <label><input type="checkbox">Verbs in the right form (italic / bold)</label>
+        <label><input type="checkbox">Abbreviations written out once</label>
+        <label><input type="checkbox">Short, clear sentences</label>
+      </div>
+      <div><h4 class="mono">3 · FORMAT</h4>
+        <label><input type="checkbox">Clauses ordered general → specific</label>
+        <label><input type="checkbox">Sub-clauses a), b), c) are consistent</label>
+        <label><input type="checkbox">Sources linked for facts</label>
+        <label><input type="checkbox">Spell-checked</label>
+      </div>
+    </div>
+    <div class="check-meter"><span id="check-fill"></span></div>
+    <p class="mono muted" id="check-txt">0 / 12 done</p>
+  </div>
+</template>
+<template id="tpl-ga">
+  <div class="ga-line" id="ga-line">
+    <div class="gl-seg" style="--w:1;--c:#7b87b3"><b>1'</b><span>Reading time</span></div>
+    <div class="gl-seg" style="--w:3;--c:#3df2ff"><b>3'</b><span>Defence speech</span></div>
+    <div class="gl-seg" style="--w:3;--c:#9b7bff"><b>2×1.5'</b><span>Position speeches</span></div>
+    <div class="gl-seg" style="--w:2;--c:#ffe14d"><b>2'</b><span>Response</span></div>
+    <div class="gl-seg" style="--w:5;--c:#ff3d7f"><b>3 rounds</b><span>Open debate · 45" each point</span></div>
+    <div class="gl-seg" style="--w:2;--c:#4dffa6"><b>2'</b><span>Summation</span></div>
+    <div class="gl-seg" style="--w:1;--c:#eaf0ff"><b>✓</b><span>Vote</span></div>
+  </div>
+  <div class="ga-tips">
+    <div class="tool-card reveal-up"><b>Direct Response</b><p>Raise your placard when you want to reply directly to the last point. One per debate per committee — use it well.</p></div>
+    <div class="tool-card reveal-up"><b>Ask other committees</b><p>We prepare questions for other committees too. A good question is short and specific.</p></div>
+    <div class="tool-card reveal-up"><b>Be on time</b><p>Shuttle leaves 08:20. Speakers: laptop charged, speech printed.</p></div>
+  </div>
+</template>
+
+<script src="assets/js/motion.js"></script>
+<script src="assets/js/supabase.js"></script>
+<script src="assets/js/config.js?v=2"></script>
+<script src="assets/js/fx.js?v=3"></script>
+<script src="assets/js/alert.js?v=2"></script>
+<script src="assets/js/content.js?v=2"></script>
+<script src="assets/js/steps.js?v=2"></script>
+<script src="assets/js/site.js?v=3"></script>
+</body>
+</html>
