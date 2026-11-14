@@ -46,7 +46,7 @@
   ov.innerHTML = `<div class="en-box">
     <div class="en-k">🔋 Energy meter</div>
     <h2 class="en-h">How charged are you?</h2>
-    <p class="en-sub">Anonymous — only your chair sees the average.</p>
+    <p class="en-sub">Only your chair sees this — never the big screen.</p>
     <svg class="en-g" viewBox="0 0 200 118" aria-hidden="true">
       <defs><linearGradient id="enGrad" x1="20" y1="0" x2="180" y2="0" gradientUnits="userSpaceOnUse">
         <stop offset="0" stop-color="#ff3d7f"/><stop offset=".28" stop-color="#ff9a3d"/><stop offset=".52" stop-color="#ffe14d"/><stop offset=".76" stop-color="#4dffa6"/><stop offset="1" stop-color="#3df2ff"/></linearGradient></defs>
@@ -61,6 +61,7 @@
     <input type="range" min="0" max="100" value="50" aria-label="Your energy, 0 to 100" style="position:absolute;opacity:0;pointer-events:none;width:1px;height:1px">
     <button class="en-go">Send ⚡</button>
     <p class="en-msg mono"></p>
+    <button class="en-who" type="button"></button>
   </div>`;
   const chip = document.createElement('button');
   chip.className = 'en-chip'; chip.hidden = true; chip.textContent = '🔋 Energy meter — sent ✓';
@@ -112,6 +113,52 @@
     if (navigator.vibrate) try { navigator.vibrate([40, 40, 40]); } catch (e) {}
   }
   function hide() { if (ov.hidden) return; animate(ov, { opacity: [1, 0] }, { duration: .25 }).then(() => { ov.hidden = true; ov.style.opacity = ''; }); }
+
+  /* ---------- who are you? (once per phone; only the chair ever sees the link) ---------- */
+  const nmCss = document.createElement('style');
+  nmCss.textContent = `
+  .nm-ov { position: fixed; inset: 0; z-index: 9450; display: grid; place-items: center; padding: 18px; background: rgba(2,4,10,.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); overflow-y: auto; }
+  .nm-ov[hidden] { display: none; }
+  .nm-box { width: min(460px, 100%); padding: 24px 18px 18px; border-radius: 28px; text-align: center; border: 2px solid transparent;
+    background: radial-gradient(120% 60% at 50% 0%, rgba(61,242,255,.16), transparent 70%) padding-box, linear-gradient(#0b1020, #0b1020) padding-box, linear-gradient(120deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff, #9b7bff) border-box; }
+  .nm-box h2 { margin: 8px 0 4px; font-size: 26px; font-weight: 900; background: linear-gradient(90deg, #3df2ff, #4dffa6, #ffe14d); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .nm-box p { margin: 0 0 14px; color: var(--ink-2, #9aa6c0); font-size: 14px; }
+  .nm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .nm-grid button { padding: 13px 10px; border-radius: 14px; border: 1px solid var(--c); background: color-mix(in srgb, var(--c) 10%, transparent); color: var(--ink, #fff); font: 700 15px var(--f-sans, sans-serif); }
+  .nm-grid button:active { transform: scale(.97); background: color-mix(in srgb, var(--c) 30%, transparent); }
+  .nm-skip { margin-top: 12px; background: none; border: 0; color: var(--ink-2, #9aa6c0); font: 500 12px var(--f-mono, monospace); text-decoration: underline; }
+  .en-who { margin-top: 8px; background: none; border: 0; color: var(--ink-2, #9aa6c0); font: 500 12px var(--f-mono, monospace); }`;
+  document.head.append(nmCss);
+  const NCOL = ['#3df2ff', '#ffe14d', '#ff3d7f', '#4dffa6', '#9b7bff', '#ff9a3d'];
+  const nm = document.createElement('div');
+  nm.className = 'nm-ov'; nm.hidden = true; nm.setAttribute('role', 'dialog'); nm.setAttribute('aria-label', 'Who are you?');
+  document.body.append(nm);
+  let myName = null; try { myName = localStorage.getItem('gl-name'); } catch (e) {}
+  const whoBtn = ov.querySelector('.en-who');
+  const paintWho = () => { whoBtn.textContent = myName ? `Sending as ${myName} · change` : 'Tap to pick your name'; };
+  paintWho();
+  async function pickName() {
+    const c = client(); if (!c) return;
+    const { data } = await c.rpc('gridline_roster_names');
+    if (!Array.isArray(data) || !data.length) return;
+    nm.innerHTML = `<div class="nm-box"><div class="en-k">⚡ Plug in</div><h2>Who are you?</h2><p>Tap your name once. Only your chair sees it.</p>
+      <div class="nm-grid">${data.map((n, i) => `<button type="button" style="--c:${NCOL[i % NCOL.length]}">${n.replace(/[&<>"']/g, '')}</button>`).join('')}</div>
+      <button type="button" class="nm-skip">I’m not on the list</button></div>`;
+    nm.hidden = false;
+    animate(nm.querySelector('.nm-box'), { y: [40, 0], opacity: [0, 1] }, { duration: .4 });
+    nm.querySelectorAll('.nm-grid button').forEach(b => b.addEventListener('click', async () => {
+      const name = b.textContent;
+      const { error } = await c.rpc('gridline_set_name', { p_device: DEV, p_name: name });
+      if (error) { b.style.borderColor = '#ff3d7f'; return; }
+      myName = name; try { localStorage.setItem('gl-name', name); } catch (e) {}
+      window.FX && FX.zap && FX.zap('up');
+      nm.hidden = true; paintWho();
+    }));
+    nm.querySelector('.nm-skip').addEventListener('click', () => { try { localStorage.setItem('gl-name-skip', '1'); } catch (e) {} nm.hidden = true; });
+  }
+  whoBtn.addEventListener('click', pickName);
+  let skipped = null; try { skipped = localStorage.getItem('gl-name-skip'); } catch (e) {}
+  if (!myName && !skipped) pickName();
 
   window.GL_onEnergy = row => {
     const nowOpen = !!row.energy_open, r = row.energy_round || 0;

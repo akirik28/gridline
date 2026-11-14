@@ -9,7 +9,7 @@
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/fonts.css">
 <link rel="stylesheet" href="../assets/css/base.css?v=2">
-<link rel="stylesheet" href="chair.css?v=6">
+<link rel="stylesheet" href="chair.css?v=7">
 <link rel="stylesheet" href="../assets/css/interact.css?v=4">
 </head>
 <body>
@@ -39,13 +39,14 @@
       <button data-tab="groups"><i>🃏</i><span>Groups</span></button>
       <button data-tab="board"><i>🏦</i><span>Board</span></button>
       <button data-tab="crisis"><i>⚡</i><span>Grid Crisis</span></button>
-      <button data-tab="plan"><i>🗓</i><span>Plan</span></button>
+      <button data-tab="plan" data-private><i>🗓</i><span>Plan</span></button>
       <a class="qr-link" href="../qr/" target="_blank" rel="noopener"><i>📱</i><span>QR screen ↗</span></a>
     </nav>
     <div class="r-energy mono" id="r-energy" hidden>🔋 Meter open · <b>0</b></div>
     <div class="r-state mono" id="r-state"><i class="dot"></i><span>Screens free</span></div>
   </aside>
 
+  <button class="pm-btn" id="pm-btn" type="button" aria-pressed="true"><i></i><span></span></button>
   <main class="stage">
 
     <!-- ===== LIVE STEPS ===== -->
@@ -62,21 +63,26 @@
           <button class="btn solid big" id="ls-next">Unlock next →</button>
         </div>
       </div>
-      <div class="ls-up mono" id="ls-up"></div>
+      <div class="ls-up mono" id="ls-up" data-private></div>
       <div class="ls-ia" id="ls-ia-wrap" hidden><div class="ls-ia-bar"><span class="mono">📊 Live answers for this step</span><span><button class="btn ghost" id="ls-ia-clear">Clear answers</button> <button class="btn solid" id="ls-ia-full">⛶ Projector</button></span></div><div id="ls-ia"></div></div>
-      <div class="ls-list" id="ls-list"></div>
+      <div class="ls-list" id="ls-list" data-private></div>
     </section>
 
     <!-- ===== ENERGY METER ===== -->
     <section class="pane" data-pane="energy" id="en-pane">
-      <header class="p-head"><h1>Energy meter</h1><p>Opens a half-circle on every phone. Anonymous. Delegates never see results — and here they stay blurred until you hold 👁.</p></header>
+      <header class="p-head"><h1>Energy meter</h1><p data-private>Opens a half-circle on every phone. Delegates never see results. Results and names show only in private mode — switch with the button top right.</p></header>
       <div class="en-ctl">
         <div><span class="mono kicker">Status</span><h2 id="en-state">—</h2></div>
         <input id="en-label" maxlength="60" placeholder="Note for yourself (optional) — e.g. after lunch">
         <button class="btn solid big" id="en-open">🔋 Open on every phone</button>
         <button class="btn pink big" id="en-close" hidden>Close meter</button>
       </div>
-      <div class="en-grid">
+      <div class="en-proj" data-public-only>
+        <div class="en-proj-ic">🔋</div>
+        <h2 id="en-proj-t">Grab your phone — how charged are you?</h2>
+        <p class="mono" id="en-proj-n"></p>
+      </div>
+      <div class="en-grid" data-private>
         <div class="en-card">
           <div class="en-top"><span class="mono kicker" id="en-which">—</span><span class="mono" id="en-n">0 answers</span></div>
           <svg class="en-gauge priv" viewBox="0 0 200 118" aria-hidden="true">
@@ -88,7 +94,11 @@
           </svg>
           <div class="en-bins priv" id="en-bins"></div>
           <div class="en-binl mono"><span>🪫 0</span><span>100 ⚡</span></div>
-          <button class="btn ghost big en-peek" id="en-peek">👁 Hold to peek</button>
+        </div>
+        <div class="en-card">
+          <div class="en-top"><span class="mono kicker">Who marked what</span><span class="mono" id="en-pn"></span></div>
+          <div class="en-people" id="en-people"></div>
+          <p class="en-miss mono" id="en-miss"></p>
         </div>
         <div class="en-card">
           <span class="mono kicker">History (saved)</span>
@@ -154,7 +164,7 @@
     <section class="pane" data-pane="groups">
       <header class="p-head"><h1>Random groups</h1><p>Shuffle the A/B/C/D cards. Every round, new mix.</p></header>
       <div class="g-in">
-        <textarea id="g-names" rows="4" placeholder="Delegate names, one per line or comma separated (saved on this device)"></textarea>
+        <textarea data-private id="g-names" rows="4" placeholder="Delegate names, one per line or comma separated (saved on this device)"></textarea>
         <div class="g-side">
           <p class="mono muted" id="g-rule"></p>
           <button class="btn volt big" id="g-shuffle">Shuffle ⚡</button>
@@ -206,7 +216,7 @@
     </section>
 
     <!-- ===== PLAN ===== -->
-    <section class="pane" data-pane="plan">
+    <section class="pane" data-pane="plan" data-private>
       <header class="p-head"><h1>Today's plan</h1><p id="pl-sub">Only you can see this.</p></header>
       <div class="pl-days" id="pl-days"></div>
       <div class="pl-now" id="pl-now"></div>
@@ -230,7 +240,7 @@
 <script src="../assets/js/steps.js?v=7"></script>
 <script src="../assets/js/interact.js?v=7"></script>
 <script src="plan.js?v=1"></script>
-<script src="energy.js?v=2"></script>
+<script src="energy.js?v=3"></script>
 <script src="chair.js?v=6"></script>
 </body>
 </html>
