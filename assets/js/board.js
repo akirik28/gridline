@@ -39,9 +39,15 @@
   .bd-qr .u { font: 500 clamp(20px, 2.4vw, 40px) var(--f-mono); padding: 14px 22px; border-radius: 18px; border: 1px solid var(--line-2); display: inline-block; }
   .bd-blank { text-align: center; }
   .bd-blank b { display: block; font-size: clamp(70px, 13vw, 240px); font-weight: 900; letter-spacing: .02em; background: linear-gradient(100deg, var(--cyan), var(--volt), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .bd-energy { position: fixed; z-index: 9100; left: 50%; bottom: 4vh; transform: translateX(-50%); display: flex; align-items: center; gap: 22px; padding: 2vh 3vw; border-radius: 999px; border: 3px solid transparent;
-    background: linear-gradient(#0b1020, #0b1020) padding-box, linear-gradient(120deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff) border-box; box-shadow: 0 0 60px rgba(77,255,166,.35); font-size: clamp(22px, 2.6vw, 44px); font-weight: 800; white-space: nowrap; }
+  .bd-energy { position: fixed; z-index: 9100; left: 0; right: 0; bottom: 3vh; margin: 0 auto; width: fit-content; max-width: min(92vw, 1500px); box-sizing: border-box; display: flex; align-items: center; gap: 22px; padding: 2vh 3vw; border-radius: 999px; border: 3px solid transparent;
+    background: linear-gradient(#0b1020, #0b1020) padding-box, linear-gradient(120deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff) border-box; box-shadow: 0 0 60px rgba(77,255,166,.35); font-size: clamp(18px, 2.2vw, 40px); font-weight: 800; line-height: 1.15; }
+  .bd-energy b { min-width: 0; }
+  .bd-energy span { white-space: nowrap; }
   .bd-energy[hidden] { display: none; }
+  html.bd-en .bd-ov { padding-bottom: 17vh; }
+  html.bd-en .bd-qr .q { width: min(50vh, 38vw); }
+  html.bd-en .bd-timer { width: min(64vh, 70vw); }
+  html.bd-en.board .stage { padding-bottom: 18vh; }
   .bd-energy i { font-style: normal; font-size: 1.4em; }
   .bd-energy span { font-family: var(--f-mono); color: var(--green); }`;
   document.head.append(st);
@@ -106,6 +112,7 @@
     const o = !!row.energy_open;
     if (o && !eOpen) { en.hidden = false; animate(en, { y: [80, 0], opacity: [0, 1] }, { type: 'spring', bounce: .35 }); }
     if (!o) en.hidden = true;
+    document.documentElement.classList.toggle('bd-en', o);
     eOpen = o; count();
   };
   setInterval(count, 3000);
