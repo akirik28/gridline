@@ -530,3 +530,8 @@ button.dr-step:hover { background: rgba(61,242,255,.06); }
 @media (prefers-reduced-motion: reduce) {
   .term, .eu-node, .stat, .role, .st-kind, .st-kind i { animation: none !important; }
 }
+
+/* long single words in step titles must fit a 375px phone */
+@media (max-width: 760px) { .st-title { font-size: clamp(32px, 10vw, 64px); max-width: none; } }
+.sn-live { white-space: nowrap; }
+@media (max-width: 760px) { .sn-live { font-size: 12px; padding: 0 14px; height: 48px; } }

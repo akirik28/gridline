@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Gridline · Scan to plug in</title>
+<meta name="theme-color" content="#04060d">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<link rel="stylesheet" href="../assets/css/base.css?v=2">
+<style>
+  body { min-height: 100svh; display: grid; place-items: center; overflow: hidden; }
+  .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: auto 1fr; gap: clamp(28px, 6vw, 90px); align-items: center; padding: 4vh 5vw; max-width: 1500px; }
+  .qr-box { position: relative; width: min(62vh, 80vw); aspect-ratio: 1; padding: 5%; border-radius: 36px; background: #fff;
+    box-shadow: 0 0 0 2px var(--cyan), 0 0 80px rgba(61,242,255,.45), 0 0 200px rgba(61,242,255,.18); }
+  .qr-box::before, .qr-box::after { content: ''; position: absolute; inset: -22px; border-radius: 48px; border: 2px solid rgba(61,242,255,.5); animation: gaRing 2.6s ease-out infinite; }
+  .qr-box::after { animation-delay: 1.3s; }
+  #qr { width: 100%; height: 100%; }
+  #qr svg { width: 100%; height: 100%; display: block; }
+  .scan { position: absolute; left: 5%; right: 5%; height: 4px; top: 5%; border-radius: 4px; background: var(--cyan); box-shadow: 0 0 20px var(--cyan), 0 0 50px var(--cyan); animation: scan 2.4s ease-in-out infinite; }
+  @keyframes scan { 0%, 100% { top: 5%; } 50% { top: 94%; } }
+  .bolt { position: absolute; left: 50%; top: 50%; width: 18%; aspect-ratio: 1; transform: translate(-50%, -50%); border-radius: 22%; background: #04060d; display: grid; place-items: center; box-shadow: 0 0 0 6px #fff; }
+  .bolt svg { width: 62%; fill: var(--volt); }
+  .kicker { font-family: var(--f-mono); color: var(--cyan); letter-spacing: .3em; text-transform: uppercase; font-size: clamp(13px, 1.4vw, 20px); }
+  h1 { margin: 16px 0 0; font-size: clamp(56px, 9vw, 170px); line-height: .86; font-weight: 900; font-stretch: 125%; letter-spacing: -.02em; }
+  h1 .w { display: inline-block; overflow: hidden; vertical-align: top; }
+  h1 .ch { display: inline-block; }
+  h1 .hl { background: linear-gradient(100deg, var(--cyan), var(--volt)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .url { margin-top: 28px; font-family: var(--f-mono); font-size: clamp(20px, 2.6vw, 40px); color: var(--ink); padding: 14px 22px; border-radius: 18px; border: 1px solid var(--line-2); background: var(--panel); display: inline-block; }
+  .steps { margin-top: 28px; display: grid; gap: 12px; font-size: clamp(18px, 1.8vw, 28px); color: var(--ink-2); }
+  .steps div { display: flex; gap: 14px; align-items: center; }
+  .steps b { flex: none; width: 1.8em; height: 1.8em; border-radius: 12px; display: grid; place-items: center; background: var(--cyan); color: #021015; font-family: var(--f-mono); font-weight: 500; }
+  @media (max-width: 900px) { .wrap { grid-template-columns: 1fr; justify-items: center; text-align: center; } .steps div { justify-content: center; } }
+</style>
+</head>
+<body>
+<canvas id="grid-bg" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<main class="wrap">
+  <div class="qr-box" id="qr-box">
+    <div id="qr" role="img" aria-label="QR code for akirik28.github.io/gridline"></div>
+    <div class="scan" aria-hidden="true"></div>
+    <div class="bolt" aria-hidden="true"><svg viewBox="0 0 64 64"><path d="M36 4 14 36h16l-4 24 24-34H34z"/></svg></div>
+  </div>
+  <div>
+    <div class="kicker">ITRE · Gridline</div>
+    <h1 id="h"><span>Scan to</span> <span class="hl">plug in</span></h1>
+    <div class="url" id="url">akirik28.github.io/gridline</div>
+    <div class="steps">
+      <div><b>1</b>Open your camera, scan the code</div>
+      <div><b>2</b>Tap the ⚡ — sound on</div>
+      <div><b>3</b>Keep the page open all 4 days</div>
+    </div>
+  </div>
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+<script src="../assets/js/motion.js"></script>
+<script src="../assets/js/fx.js?v=2"></script>
+<script>
+(function () {
+  const URL_ = 'https://akirik28.github.io/gridline/';
+  const { animate, stagger } = window.Motion;
+  const bg = FX.grid(document.getElementById('grid-bg'), { density: 14 });
+  // QR (error correction H so the centre bolt does not break it)
+  const box = document.getElementById('qr');
+  if (window.qrcode) {
+    const q = qrcode(0, 'H'); q.addData(URL_); q.make();
+    const n = q.getModuleCount(); let r = '';
+    for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02"/>`;
+    box.innerHTML = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><g fill="#04060d">${r}</g></svg>`;
+    animate(box.querySelectorAll('rect'), { opacity: [0, 1], scale: [0, 1] }, { delay: stagger(.0018, { from: 'center' }), duration: .35 });
+  } else {
+    box.innerHTML = '<p style="color:#04060d;font:700 28px/1.2 sans-serif;text-align:center;margin-top:40%">akirik28.github.io/gridline</p>';
+  }
+  animate('#qr-box', { scale: [.6, 1], rotate: [-8, 0], opacity: [0, 1] }, { type: 'spring', bounce: .35 });
+  const h = document.getElementById('h');
+  h.querySelectorAll('span').forEach(s => { const ch = FX.split(s); animate(ch, { y: ['100%', '0%'], opacity: [0, 1] }, { delay: stagger(.05, { startDelay: .3 }), duration: .7, ease: [.2, .8, .2, 1] }); });
+  animate('.kicker, .url, .steps div', { opacity: [0, 1], y: [24, 0] }, { delay: stagger(.12, { startDelay: .8 }), duration: .6 });
+  setInterval(() => { bg && bg.surge(10); FX.scramble(document.getElementById('url'), 'akirik28.github.io/gridline', 700); }, 9000);
+})();
+</script>
+</body>
+</html>

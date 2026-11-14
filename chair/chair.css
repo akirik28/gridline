@@ -262,3 +262,7 @@ input[type=time] { color-scheme: dark; padding: 8px 10px; }
 .fx-spark { position: fixed; z-index: 9600; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c), 0 0 2px #fff; pointer-events: none; }
 .fx-ripple { position: absolute; border-radius: 50%; pointer-events: none; z-index: 0; background: radial-gradient(circle, color-mix(in srgb, var(--c, var(--cyan)) 55%, transparent), transparent 60%); }
 @media (prefers-reduced-motion: reduce) { #ls-next, .ls-row.live, .ls-now .scanbeam, .preset .pr-ic { animation: none !important; } }
+.qr-link { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; border: 1px dashed var(--line-2); text-decoration: none; font-size: 15px; color: var(--ink-2); margin-top: 6px; }
+.qr-link i { font-style: normal; font-size: 20px; width: 26px; text-align: center; }
+.qr-link:hover { border-color: var(--cyan); color: var(--ink); }
+@media (max-width: 1000px) { .qr-link { flex-direction: column; gap: 2px; padding: 8px 10px; font-size: 11px; margin: 0; white-space: nowrap; } }
