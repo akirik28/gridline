@@ -30,14 +30,18 @@
       .subscribe();
     return sb;
   }
-  async function fetchRows(step) {
+  // a widget key is the step index, or "step.slot" for a second widget on the same step
+  const parse = k => { const [a, b] = String(k).split('.'); return { step: +a, slot: +(b || 0) }; };
+  async function fetchRows(key) {
     const c = client(); if (!c) return [];
-    const { data } = await c.from('gridline_resp').select('device,value,at').eq('step', step).order('at');
+    const { step, slot } = parse(key);
+    const { data } = await c.from('gridline_resp').select('device,value,at').eq('step', step).eq('slot', slot).order('at');
     return data || [];
   }
-  async function respond(step, value) {
+  async function respond(key, value) {
     const c = client(); if (!c) throw new Error('offline');
-    const { error } = await c.rpc('gridline_respond', { p_step: step, p_device: DEV, p_value: String(value) });
+    const { step, slot } = parse(key);
+    const { error } = await c.rpc('gridline_respond', { p_step: step, p_device: DEV, p_value: String(value), p_slot: slot });
     if (error) throw error;
   }
   async function clear(pin, step) {
@@ -47,7 +51,7 @@
   }
 
   /* ---------- shared shell ---------- */
-  const LABEL = { poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ' };
+  const LABEL = { poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER' };
   function shell(el, ia, proj) {
     el.innerHTML = `<div class="ia ia-${ia.type}${proj ? ' proj' : ''}">
       <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${LABEL[ia.type]}</span><span class="ia-n mono" data-n>0 answers</span></div>
@@ -245,21 +249,178 @@
     return { set(r) { rows = r; paint(); }, paint };
   }
 
-  const KINDS = { poll, scale, words, quiz };
+  /* ---------- DECK (local question cards) ---------- */
+  function deck(ui, step, ia, proj) {
+    const cards = ia.cards, seq = ia.mode !== 'shuffle';
+    let k = 0, order = cards.map((_, i) => i);
+    if (!seq) for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
+    ui.n.hidden = true;
+    ui.inp.innerHTML = `<div class="dk"><div class="dk-stack"><i></i><i></i><article class="dk-card"><span class="dk-no mono"></span><p class="dk-q"></p></article></div>
+      <div class="dk-nav">${seq ? '<button class="btn ghost dk-prev">←</button>' : ''}<button class="btn solid dk-next">${seq ? 'Next round →' : 'Deal another 🃏'}</button></div></div>`;
+    const card = $('.dk-card', ui.inp);
+    const show = (dir = 1) => {
+      $('.dk-no', card).textContent = seq ? `ROUND ${k + 1} / ${cards.length}` : `CARD ${k + 1}`;
+      $('.dk-q', card).textContent = cards[order[k % order.length]];
+      card.style.setProperty('--c', COLS[k % COLS.length]);
+      if (seq) { $('.dk-prev', ui.inp).disabled = k === 0; $('.dk-next', ui.inp).disabled = k >= cards.length - 1; }
+      animate(card, { rotateY: [dir * 90, 0], opacity: [0, 1], x: [dir * 60, 0] }, { duration: .5, ease: [.2, .8, .2, 1] });
+    };
+    $('.dk-next', ui.inp).addEventListener('click', e => { window.FX && FX.ripple && FX.ripple(e.currentTarget, e); zap('up'); k++; if (!seq && k % order.length === 0) order.reverse(); show(1); });
+    seq && $('.dk-prev', ui.inp).addEventListener('click', () => { if (k) { zap('down'); k--; show(-1); } });
+    show(1);
+    return { local: true };
+  }
 
-  function mount(el, step, ia, o = {}) {
-    if (!ia || !KINDS[ia.type]) { el.innerHTML = ''; el.hidden = true; return () => {}; }
-    el.hidden = false;
+  /* ---------- SECRET (balanced random role per phone) ---------- */
+  function secret(ui, step, ia, proj) {
+    let rows = [], asked = false;
+    const it = ia.items, mineIdx = () => { const i = rows.findIndex(r => r.device === DEV); return i < 0 ? -1 : i % it.length; };
+    if (!proj) {
+      ui.inp.innerHTML = `<button class="btn solid big sc-get">Get my secret ${esc(ia.noun || 'card')} 🤫</button>`;
+      $('.sc-get', ui.inp).addEventListener('click', async e => {
+        if (asked) return; asked = true;
+        try { await respond(step, 'in'); ui.refresh(); zap('up'); } catch (err) { asked = false; flash(ui.msg, err.message === 'step locked' ? 'This step is not open yet.' : 'Could not connect — try again.', true); }
+      });
+    }
+    function paint() {
+      const cnt = it.map(() => 0); rows.forEach((r, i) => cnt[i % it.length]++);
+      ui.out.innerHTML = `<div class="sx-herds">${it.map((x, i) => `<span style="--c:${COLS[i % COLS.length]}"><b>${x.ic}</b>${proj ? esc(x.t) + ' ' : ''}<em class="mono">×${cnt[i]}</em></span>`).join('')}</div>`;
+      count(ui.n, rows, 'player');
+      if (proj) return;
+      const m = mineIdx();
+      if (m < 0) return;
+      if (!$('.sx-card', ui.inp) || +$('.sx-card', ui.inp).dataset.m !== m) {
+        const x = it[m];
+        ui.inp.innerHTML = `<button class="sx-card" data-m="${m}" style="--c:${COLS[m % COLS.length]}"><span class="sx-cover"><b>🔒</b>Press &amp; hold to peek<small>don’t let anyone see!</small></span>
+          <span class="sx-face"><b>${x.ic}</b><strong>${esc(x.t)}</strong><small>${esc(x.s || '')}</small></span></button>`;
+        const c = $('.sx-card', ui.inp);
+        const on = e => { e.preventDefault(); c.classList.add('peek'); if (navigator.vibrate) try { navigator.vibrate(30); } catch (er) {} };
+        const off = () => c.classList.remove('peek');
+        c.addEventListener('pointerdown', on); ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => c.addEventListener(ev, off));
+        c.addEventListener('contextmenu', e => e.preventDefault());
+        animate(c, { scale: [.6, 1], rotate: [-6, 0], opacity: [0, 1] }, { type: 'spring', bounce: .45 });
+      }
+    }
+    return { set(r) { rows = r; paint(); }, paint };
+  }
+
+  /* ---------- FACTS (anonymous, revealed one by one on the projector) ---------- */
+  function facts(ui, step, ia, proj) {
+    let rows = [], order = [], k = 0;
+    if (!proj) {
+      ui.inp.innerHTML = `<form class="wc-form tall"><textarea maxlength="${ia.max || 120}" rows="3" placeholder="${esc(ia.ph || 'Type here')}"></textarea><button class="btn solid">Into the hat 🎩</button></form>`;
+      const f = $('form', ui.inp), t = $('textarea', f), mine = getMine(step);
+      if (mine) t.value = mine;
+      f.addEventListener('submit', async e => {
+        e.preventDefault(); const v = t.value.trim(); if (v.length < 3) return;
+        try { await respond(step, v); ui.refresh(); setMine(step, v); zap('up'); t.blur(); flash(ui.msg, 'In the hat ✓ — keep a straight face 😐'); }
+        catch (err) { flash(ui.msg, err.message === 'step locked' ? 'This step is not open yet.' : 'Could not send — check your connection.', true); }
+      });
+    } else {
+      ui.out.innerHTML = `<article class="fx-card"><span class="fx-no mono"></span><p class="fx-t"></p></article>
+        <div class="dk-nav"><button class="btn ghost fx-prev">←</button><button class="btn solid fx-next">Next fact →</button></div>`;
+      $('.fx-next', ui.out).addEventListener('click', () => { if (k < order.length - 1) { k++; zap('up'); paint(1); } });
+      $('.fx-prev', ui.out).addEventListener('click', () => { if (k > 0) { k--; zap('down'); paint(-1); } });
+    }
+    function paint(dir) {
+      count(ui.n, rows, 'fact');
+      if (!proj) return;
+      const devs = rows.map(r => r.device);
+      order = order.filter(d => devs.includes(d));
+      devs.filter(d => !order.includes(d)).forEach(d => order.splice(order.length ? k + 1 + Math.floor(Math.random() * (order.length - k)) : 0, 0, d));
+      k = Math.min(k, Math.max(0, order.length - 1));
+      const r = rows.find(x => x.device === order[k]);
+      $('.fx-no', ui.out).textContent = order.length ? `FACT ${k + 1} / ${order.length}` : 'WAITING FOR FACTS…';
+      $('.fx-t', ui.out).textContent = r ? r.value : 'Delegates type their weird fact on their phones.';
+      $('.fx-prev', ui.out).disabled = k === 0; $('.fx-next', ui.out).disabled = k >= order.length - 1;
+      if (dir) animate('.fx-card', { rotateX: [dir * 70, 0], opacity: [0, 1] }, { duration: .5, ease: [.2, .8, .2, 1] });
+    }
+    return { set(r) { rows = r; paint(); }, paint };
+  }
+
+  /* ---------- ASK (question wall) ---------- */
+  function ask(ui, step, ia, proj) {
+    let rows = [];
+    if (!proj) {
+      ui.inp.innerHTML = `<form class="wc-form tall"><textarea maxlength="${ia.max || 140}" rows="2" placeholder="${esc(ia.ph || 'Your question…')}"></textarea><button class="btn solid">Post ⚡</button></form>`;
+      const f = $('form', ui.inp), t = $('textarea', f), mine = getMine(step);
+      if (mine) t.value = mine;
+      f.addEventListener('submit', async e => {
+        e.preventDefault(); const v = t.value.trim(); if (v.length < 3) return;
+        try { await respond(step, v); ui.refresh(); setMine(step, v); zap('up'); t.blur(); flash(ui.msg, 'Posted ✓ — edit and post again to change it'); }
+        catch (err) { flash(ui.msg, err.message === 'step locked' ? 'This step is not open yet.' : 'Could not send — check your connection.', true); }
+      });
+    }
+    ui.out.innerHTML = '<div class="aw"><p class="wc-empty mono">No questions yet.</p></div>';
+    function paint() {
+      const aw = $('.aw', ui.out), have = new Map($$('.aw-q', aw).map(q => [q.dataset.d, q]));
+      if (rows.length) $('.wc-empty', aw)?.remove(); else if (!$('.wc-empty', aw)) aw.innerHTML = '<p class="wc-empty mono">No questions yet.</p>';
+      [...rows].reverse().forEach((r, i) => {
+        let q = have.get(r.device);
+        if (!q) { q = document.createElement('div'); q.className = 'aw-q'; q.dataset.d = r.device; q.style.setProperty('--c', COLS[[...r.device].reduce((s, c) => s + c.charCodeAt(0), 0) % COLS.length]); aw.prepend(q); animate(q, { opacity: [0, 1], y: [-20, 0], scale: [.9, 1] }, { duration: .45 }); }
+        q.textContent = r.value; q.classList.toggle('mine', r.device === DEV);
+        have.delete(r.device);
+      });
+      have.forEach(q => q.remove());
+      count(ui.n, rows, 'question');
+    }
+    return { set(r) { rows = r; paint(); }, paint };
+  }
+
+  /* ---------- SPEECH (local practice timer) ---------- */
+  function speech(ui, step, ia, proj) {
+    const P = ia.presets; let cur = 0, left = P[0].s, run = false, last = 0, raf, warned = false, ended = false;
+    ui.n.hidden = true;
+    ui.inp.innerHTML = `<div class="sp-tabs">${P.map((p, i) => `<button class="sp-tab${i ? '' : ' on'}" data-i="${i}">${esc(p.n)}<small class="mono">${Math.floor(p.s / 60)}:${String(p.s % 60).padStart(2, '0')}</small></button>`).join('')}</div>
+      <div class="sp-face"><svg viewBox="0 0 200 200"><circle cx="100" cy="100" r="88" class="sp-bg"/><circle cx="100" cy="100" r="88" class="sp-arc"/></svg><div class="sp-t mono">0:00</div><div class="sp-tip mono"></div></div>
+      <div class="dk-nav"><button class="btn ghost sp-reset">Reset</button><button class="btn solid sp-go">Start ▶</button></div>`;
+    const arc = $('.sp-arc', ui.inp), C2 = 2 * Math.PI * 88; arc.style.strokeDasharray = C2;
+    const fmt = v => (v < 0 ? '+' : '') + Math.floor(Math.abs(v) / 60) + ':' + String(Math.floor(Math.abs(v) % 60)).padStart(2, '0');
+    function draw() {
+      const tot = P[cur].s, face = $('.sp-face', ui.inp);
+      $('.sp-t', ui.inp).textContent = fmt(Math.ceil(left));
+      arc.style.strokeDashoffset = C2 * (1 - Math.max(0, left) / tot);
+      face.classList.toggle('warn', left <= 30 && left > 0); face.classList.toggle('over', left <= 0);
+      $('.sp-tip', ui.inp).textContent = left <= 0 ? 'TIME — wrap up now!' : left <= 30 ? 'last 30 seconds' : run ? (P[cur].tip || 'breathe · eye contact · slow down') : 'ready when you are';
+    }
+    function tick() {
+      if (!run) return;
+      const now = Date.now(); left -= (now - last) / 1000; last = now;
+      if (left <= 30 && !warned) { warned = true; zap('down'); if (navigator.vibrate) try { navigator.vibrate(120); } catch (e) {} }
+      if (left <= 0 && !ended) { ended = true; zap('down'); setTimeout(() => zap('down'), 300); if (navigator.vibrate) try { navigator.vibrate([200, 100, 200]); } catch (e) {} }
+      draw();
+    }
+    const go = $('.sp-go', ui.inp);
+    go.addEventListener('click', () => { run = !run; last = Date.now(); go.textContent = run ? 'Pause ❚❚' : 'Start ▶'; zap('up'); clearInterval(raf); if (run) raf = setInterval(tick, 200); draw(); });
+    const reset = () => { run = false; clearInterval(raf); left = P[cur].s; warned = false; ended = false; go.textContent = 'Start ▶'; draw(); };
+    $('.sp-reset', ui.inp).addEventListener('click', reset);
+    $$('.sp-tab', ui.inp).forEach(b => b.addEventListener('click', () => { $$('.sp-tab', ui.inp).forEach(x => x.classList.toggle('on', x === b)); cur = +b.dataset.i; reset(); zap('up'); }));
+    draw();
+    return { local: true, stop: () => clearInterval(raf) };
+  }
+
+  const KINDS = { poll, scale, words, quiz, deck, secret, facts, ask, speech };
+
+  function mountOne(el, step, ia, o) {
     const ui = shell(el, ia, !!o.projector);
+    let alive = true, w;
+    async function pull() { const r = await fetchRows(step).catch(() => null); if (alive && r && w && w.set) w.set(r); }
     ui.refresh = () => pull();
-    const w = KINDS[ia.type](ui, step, ia, !!o.projector);
-    let alive = true;
-    async function pull() { const r = await fetchRows(step).catch(() => null); if (alive && r) w.set(r); }
+    w = KINDS[ia.type](ui, step, ia, !!o.projector);
+    if (w.local) return () => { alive = false; w.stop && w.stop(); };
     pull(); subs.add(pull);
     const iv = setInterval(pull, 6000);
     const vis = () => { if (!document.hidden) pull(); };
     document.addEventListener('visibilitychange', vis);
     return () => { alive = false; subs.delete(pull); clearInterval(iv); document.removeEventListener('visibilitychange', vis); };
+  }
+
+  function mount(el, step, ia, o = {}) {
+    const list = (Array.isArray(ia) ? ia : [ia]).filter(x => x && KINDS[x.type]);
+    if (!list.length) { el.innerHTML = ''; el.hidden = true; return () => {}; }
+    el.hidden = false; el.innerHTML = '';
+    const stops = list.map((x, k) => { const d = document.createElement('div'); d.className = 'ia-slot'; el.append(d); return mountOne(d, k ? `${step}.${k}` : step, x, o); });
+    return () => stops.forEach(f => f());
   }
 
   window.GLIA = { mount, clear, device: DEV };
