@@ -9,7 +9,7 @@
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/fonts.css">
 <link rel="stylesheet" href="../assets/css/base.css?v=2">
-<link rel="stylesheet" href="chair.css?v=9">
+<link rel="stylesheet" href="chair.css?v=10">
 <link rel="stylesheet" href="../assets/css/interact.css?v=4">
 </head>
 <body>
@@ -34,7 +34,7 @@
     <nav class="tabs" id="tabs">
       <button data-tab="steps" class="on"><i>▶️</i><span>Live steps</span></button>
       <button data-tab="broadcast"><i>📡</i><span>Broadcast</span></button>
-      <button data-tab="energy"><i>🔋</i><span>Energy meter</span></button>
+      <button data-tab="energy"><i>🔋</i><span>Energy &amp; Debrief</span></button>
       <button data-tab="timer"><i>⏱</i><span>Timer</span></button>
       <button data-tab="groups"><i>🃏</i><span>Groups</span></button>
       <button data-tab="board"><i>🏦</i><span>Board</span></button>
@@ -66,6 +66,7 @@
         </div>
         <div class="ls-ctrl">
           <button class="btn ghost big" id="ls-prev">← Back</button>
+          <button class="btn green big" id="ls-start">▶ Start</button>
           <button class="btn ghost big" id="ls-bpage" hidden>📺 Board: Continue →</button>
           <button class="btn solid big" id="ls-next">Unlock next →</button>
         </div>
@@ -77,12 +78,17 @@
 
     <!-- ===== ENERGY METER ===== -->
     <section class="pane" data-pane="energy" id="en-pane">
-      <header class="p-head"><h1>Energy meter</h1><p data-private>Opens a half-circle on every phone. Delegates never see results. Results and names show only in private mode — switch with the button top right.</p></header>
+      <header class="p-head"><h1>Energy &amp; Debrief</h1><p data-private>Opens a half-circle on every phone. Delegates never see results. Results and names show only in private mode — switch with the button top right.</p></header>
       <div class="en-ctl">
         <div><span class="mono kicker">Status</span><h2 id="en-state">—</h2></div>
         <input id="en-label" maxlength="60" placeholder="Note for yourself (optional) — e.g. after lunch">
         <button class="btn solid big" id="en-open">🔋 Open on every phone</button>
-        <button class="btn pink big" id="en-close" hidden>Close meter</button>
+        <button class="btn pink big" id="en-close" hidden>Close</button>
+      </div>
+      <div class="en-ctl en-dbc">
+        <div><span class="mono kicker">Debrief</span><h2>🗣 1–5 on every phone</h2></div>
+        <input id="db-q" maxlength="140" placeholder="Question — How was today for you?">
+        <button class="btn big db-open" id="db-open">🗣 Open debrief</button>
       </div>
       <div class="en-proj" data-public-only>
         <div class="en-proj-ic">🔋</div>
@@ -247,7 +253,7 @@
 <script src="../assets/js/steps.js?v=11"></script>
 <script src="../assets/js/interact.js?v=7"></script>
 <script src="plan.js?v=1"></script>
-<script src="energy.js?v=3"></script>
-<script src="chair.js?v=9"></script>
+<script src="energy.js?v=4"></script>
+<script src="chair.js?v=10"></script>
 </body>
 </html>

@@ -336,3 +336,8 @@ body.pmode .gc-in input { -webkit-text-security: disc; }
 .ls-ia.waiting #ls-ia { opacity: .45; filter: saturate(.4); }
 .ls-ia.waiting .ls-ia-bar::after { content: 'Hidden on phones + board until you press ▶ Start game'; display: block; width: 100%; order: 3; margin-top: 6px; font: 500 12px var(--f-mono); color: var(--volt); }
 .ls-ia-bar { flex-wrap: wrap; }
+
+.en-dbc { margin-top: 14px; }
+.db-open { --c: #9b7bff; background: linear-gradient(90deg, #9b7bff, #ff3d7f); color: #fff; border: 0; }
+.ls-ctrl { flex-wrap: wrap; }
+#ls-start.pink { --c: var(--pink); }

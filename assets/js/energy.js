@@ -101,7 +101,7 @@
     msg.classList.remove('bad'); msg.textContent = 'Sent ✓ thank you!';
     setTimeout(() => { if (open) { hide(); chip.hidden = false; } }, 900);
   });
-  chip.addEventListener('click', () => { chip.hidden = true; show(); });
+  chip.addEventListener('click', () => { chip.hidden = true; if (typeof dOpen !== 'undefined' && dOpen) { db.hidden = false; dPaint(); } else show(); });
 
   function show() {
     if (!ov.hidden) return;
@@ -160,8 +160,75 @@
   let skipped = null; try { skipped = localStorage.getItem('gl-name-skip'); } catch (e) {}
   if (!window.GL_BOARD && !myName && !skipped) pickName();
 
+  /* ---------- debrief: 1–5, only the chair sees answers ---------- */
+  const FACES = [['😫', 'Rough'], ['😕', 'Meh'], ['😐', 'Okay'], ['🙂', 'Good'], ['🤩', 'Amazing']];
+  const dbCss = document.createElement('style');
+  dbCss.textContent = `
+  .db-faces { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 18px 0 6px; }
+  .db-faces button { display: grid; justify-items: center; gap: 4px; padding: 12px 2px 10px; border-radius: 18px; border: 2px solid var(--line-2, #24304a); background: rgba(255,255,255,.03); color: var(--ink, #fff); font: 600 11px var(--f-mono, monospace); }
+  .db-faces button i { font-style: normal; font-size: 34px; line-height: 1; transition: transform .2s; }
+  .db-faces button b { font-size: 15px; }
+  .db-faces button.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 45%, transparent); }
+  .db-faces button.on i { transform: scale(1.25); }
+  .db-q { margin: 6px 0 0; font-size: 20px; font-weight: 800; }`;
+  document.head.append(dbCss);
+  const DCOL = ['#ff3d7f', '#ff9a3d', '#ffe14d', '#4dffa6', '#3df2ff'];
+  const db = document.createElement('div');
+  db.className = 'en-ov'; db.hidden = true; db.setAttribute('role', 'dialog'); db.setAttribute('aria-label', 'Debrief');
+  db.innerHTML = `<div class="en-box">
+    <div class="en-k">🗣 Debrief</div>
+    <h2 class="en-h">Debrief time!</h2>
+    <p class="db-q"></p>
+    <div class="db-faces">${FACES.map((f, i) => `<button type="button" data-v="${i + 1}" style="--c:${DCOL[i]}"><i>${f[0]}</i><b>${i + 1}</b>${f[1]}</button>`).join('')}</div>
+    <p class="en-sub">Only your chair sees this — never the big screen.</p>
+    <button class="en-go" disabled>Pick 1–5</button>
+    <p class="en-msg mono"></p>
+  </div>`;
+  document.body.append(db);
+  let dPick = 0, dRound = 0, dOpen = false;
+  const dGo = db.querySelector('.en-go'), dMsg = db.querySelector('.en-msg');
+  const dPaint = () => {
+    db.querySelectorAll('.db-faces button').forEach(b => b.classList.toggle('on', +b.dataset.v === dPick));
+    db.style.setProperty('--en-c', dPick ? DCOL[dPick - 1] : '#3df2ff');
+    dGo.disabled = !dPick; dGo.textContent = dPick ? 'Send ⚡' : 'Pick 1–5';
+  };
+  db.querySelectorAll('.db-faces button').forEach(b => b.addEventListener('click', () => { dPick = +b.dataset.v; dPaint(); if (navigator.vibrate) try { navigator.vibrate(15); } catch (e) {} }));
+  dGo.addEventListener('click', async () => {
+    const c = client(); if (!c || !dPick) return;
+    dGo.disabled = true;
+    const { error } = await c.rpc('gridline_energy_vote', { p_round: dRound, p_device: DEV, p_value: dPick });
+    dGo.disabled = false;
+    if (error) { dMsg.classList.add('bad'); dMsg.textContent = /closed/.test(error.message) ? 'Your chair already closed the debrief.' : 'Could not send — check your connection.'; return; }
+    try { localStorage.setItem(sentKey(dRound), String(dPick)); } catch (e) {}
+    window.FX && FX.zap && FX.zap('up');
+    dMsg.classList.remove('bad'); dMsg.textContent = 'Sent ✓ thank you!';
+    setTimeout(() => { if (dOpen) { db.hidden = true; chip.textContent = '🗣 Debrief — sent ✓'; chip.hidden = false; } }, 900);
+  });
+  function dShow(q) {
+    db.querySelector('.db-q').textContent = q || 'How was today for you?';
+    dMsg.textContent = ''; dPaint();
+    if (!db.hidden) return;
+    db.hidden = false;
+    animate(db.querySelector('.en-box'), { y: [60, 0], scale: [.92, 1] }, { type: 'spring', bounce: .35 });
+    window.FX && FX.zap && FX.zap('up');
+    if (navigator.vibrate) try { navigator.vibrate([40, 40, 40]); } catch (e) {}
+  }
+
   window.GL_onEnergy = row => {
     if (window.GL_BOARD) { window.GL_onBoardEnergy && window.GL_onBoardEnergy(row); return; }
+    const kind = row.energy_kind === 'debrief' ? 'debrief' : 'energy';
+    if (kind === 'debrief') {
+      if (open) { open = false; hide(); }
+      const r = row.energy_round || 0;
+      if (row.energy_open && (r !== dRound || !dOpen)) {
+        dRound = r; dOpen = true; const was = getSent(r);
+        dPick = was ? +was : 0;
+        if (was) { chip.textContent = '🗣 Debrief — sent ✓'; chip.hidden = false; } else { chip.hidden = true; dShow(row.energy_q); }
+      } else if (!row.energy_open && dOpen) { dOpen = false; chip.hidden = true; db.hidden = true; }
+      return;
+    }
+    if (dOpen) { dOpen = false; db.hidden = true; }
+    chip.textContent = '🔋 Energy meter — sent ✓';
     const nowOpen = !!row.energy_open, r = row.energy_round || 0;
     if (nowOpen && (r !== round || !open)) {
       round = r; open = true; sent = getSent(r);

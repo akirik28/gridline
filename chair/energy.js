@@ -10,11 +10,13 @@
   const colour = v => v < 25 ? '#ff3d7f' : v < 50 ? '#ff9a3d' : v < 75 ? '#ffe14d' : '#4dffa6';
   const R = 80, LEN = Math.PI * R;
 
-  let open = false, round = 0, rounds = [], busy = false, roster = [];
+  let open = false, round = 0, rounds = [], busy = false, roster = [], kindNow = 'energy';
+  const FACE = ['', '😫', '😕', '😐', '🙂', '🤩'];
+  const dcol = v => ['#ff3d7f', '#ff3d7f', '#ff9a3d', '#ffe14d', '#4dffa6', '#3df2ff'][Math.round(v)] || '#3df2ff';
 
   async function state() {
-    const { data } = await sb.from(C.table).select('energy_open, energy_round').eq('id', 1).maybeSingle();
-    if (data) { open = !!data.energy_open; round = data.energy_round || 0; }
+    const { data } = await sb.from(C.table).select('energy_open, energy_round, energy_kind').eq('id', 1).maybeSingle();
+    if (data) { open = !!data.energy_open; round = data.energy_round || 0; kindNow = data.energy_kind || 'energy'; }
   }
   async function stats() {
     if (!pin()) return;
@@ -31,35 +33,37 @@
   function paint() {
     const cur = rounds.find(r => r.id === round) || null;
     const last = open ? cur : rounds[0];
-    $('#en-state').textContent = open ? `Open on every phone · since ${hm(cur && cur.opened_at)}` : 'Closed — phones are free';
+    const isDb = last && last.kind === 'debrief';
+    $('#en-state').textContent = open ? `${kindNow === 'debrief' ? '🗣 Debrief' : '🔋 Energy meter'} open on every phone · since ${hm(cur && cur.opened_at)}` : 'Closed — phones are free';
+    $('#db-open').hidden = open; $('#db-q').disabled = open;
     $('#en-state').classList.toggle('on', open);
     $('#en-open').hidden = open; $('#en-close').hidden = !open; $('#en-label').disabled = open;
     $('#en-n').textContent = last ? `${last.n} answer${last.n === 1 ? '' : 's'}` : '0 answers';
-    $('#en-which').textContent = last ? (open ? 'This round' : `Last round · ${day(last.opened_at)} ${hm(last.opened_at)}${last.label ? ' · ' + last.label : ''}`) : 'No rounds yet';
+    $('#en-which').textContent = last ? `${isDb ? '🗣 Debrief' : '🔋 Energy'} · ${open ? 'this round' : `last round · ${day(last.opened_at)} ${hm(last.opened_at)}`}${last.question ? ' · ' + last.question : last.label ? ' · ' + last.label : ''}` : 'No rounds yet';
     const v = last && last.n ? last.avg : null;
     const val = $('#en-arc');
-    val.setAttribute('stroke-dashoffset', v == null ? LEN : LEN * (1 - v / 100));
+    val.setAttribute('stroke-dashoffset', v == null ? LEN : LEN * (1 - (isDb ? (v - 1) / 4 * 100 : v) / 100));
     val.setAttribute('stroke', v == null ? 'transparent' : 'url(#enGradC)');
-    $('#en-avg').textContent = v == null ? '—' : v + '%';
+    $('#en-avg').textContent = v == null ? '—' : isDb ? `${FACE[Math.round(v)]} ${v}/5` : v + '%';
     const bins = last ? last.bins : [0, 0, 0, 0, 0], mx = Math.max(1, ...bins);
-    $('#en-bins').innerHTML = bins.map((b, i) => `<div><i style="height:${b / mx * 100}%;background:${colour(i * 20 + 10)}"></i><b class="mono">${b}</b></div>`).join('');
-    $('#en-hist').innerHTML = rounds.length ? rounds.map(r => `<tr><td class="mono">${day(r.opened_at)} ${hm(r.opened_at)}</td><td>${esc(r.label || '—')}</td><td class="mono">${r.n}</td><td class="mono priv"><b style="color:${r.n ? colour(r.avg) : 'inherit'}">${r.n ? r.avg + '%' : '—'}</b></td></tr>`).join('') : '<tr><td colspan="4" class="muted">Nothing recorded yet.</td></tr>';
+    $('#en-bins').innerHTML = bins.map((b, i) => `<div><i style="height:${b / mx * 100}%;background:${isDb ? dcol(i + 1) : colour(i * 20 + 10)}"></i><b class="mono">${isDb ? FACE[i + 1] + ' ' : ''}${b}</b></div>`).join('');
+    $('#en-hist').innerHTML = rounds.length ? rounds.map(r => `<tr><td class="mono">${day(r.opened_at)} ${hm(r.opened_at)}</td><td>${r.kind === 'debrief' ? '🗣 ' : '🔋 '}${esc(r.question || r.label || '—')}</td><td class="mono">${r.n}</td><td class="mono priv"><b style="color:${r.n ? (r.kind === 'debrief' ? dcol(r.avg) : colour(r.avg)) : 'inherit'}">${r.n ? (r.kind === 'debrief' ? r.avg + '/5' : r.avg + '%') : '—'}</b></td></tr>`).join('') : '<tr><td colspan="4" class="muted">Nothing recorded yet.</td></tr>';
     // projection card (counts only)
-    $('#en-proj-t').textContent = open ? 'Grab your phone — how charged are you?' : 'Energy meter is closed';
+    $('#en-proj-t').textContent = open ? (kindNow === 'debrief' ? 'DEBRIEF! Pick 1–5 on your phone' : 'Grab your phone — how charged are you?') : 'Closed';
     $('#en-proj-n').textContent = open && cur ? `${cur.n}${roster.length ? ' / ' + roster.length : ''} sent` : '';
     // private: who marked what
     const ppl = last && Array.isArray(last.people) ? [...last.people].sort((a, b) => b.value - a.value) : [];
     $('#en-pn').textContent = ppl.length ? `${ppl.length} named` : '';
-    $('#en-people').innerHTML = ppl.length ? ppl.map(p => `<div class="en-p" style="--c:${colour(p.value)}"><i style="width:${p.value}%"></i><span>${esc(p.name)}</span><b>${p.value}%</b></div>`).join('') : '<p class="muted">No answers yet.</p>';
+    $('#en-people').innerHTML = ppl.length ? ppl.map(p => (isDb ? `<div class="en-p" style="--c:${dcol(p.value)}"><i style="width:${p.value * 20}%"></i><span>${esc(p.name)}</span><b>${FACE[p.value]} ${p.value}</b></div>` : `<div class="en-p" style="--c:${colour(p.value)}"><i style="width:${p.value}%"></i><span>${esc(p.name)}</span><b>${p.value}%</b></div>`)).join('') : '<p class="muted">No answers yet.</p>';
     const got = new Set(ppl.map(p => p.name)), miss = roster.filter(n => !got.has(n));
     $('#en-miss').textContent = last && roster.length && miss.length ? `Not sent: ${miss.join(', ')}` : '';
     const badge = $('#r-energy');
     if (badge) { badge.hidden = !open; badge.querySelector('b').textContent = cur ? cur.n : 0; }
   }
 
-  async function set(o) {
+  async function set(o, kind) {
     if (busy) return; busy = true;
-    const { error } = await sb.rpc('gridline_energy_set', { p_pin: pin(), p_open: o, p_label: $('#en-label').value });
+    const { error } = await sb.rpc('gridline_energy_set', { p_pin: pin(), p_open: o, p_label: $('#en-label').value, p_kind: kind || 'energy', p_question: kind === 'debrief' ? ($('#db-q').value || 'How was today for you?') : null });
     busy = false;
     if (error) { alert('Could not change the meter: ' + error.message); return; }
     window.FX && FX.zap && FX.zap(o ? 'up' : 'down');
@@ -67,6 +71,7 @@
     refresh();
   }
   $('#en-open').addEventListener('click', () => set(true));
+  $('#db-open').addEventListener('click', () => set(true, 'debrief'));
   $('#en-close').addEventListener('click', () => set(false));
 
   const box = $('#en-pane');

@@ -118,7 +118,8 @@
     const st = ST[curStep], d = GL_DAYS[st.d];
     $('#ls-meta').textContent = `On every screen now · Step ${pad2(curStep + 1)}/${ST.length} · ${d.label}`;
     $('#ls-title').textContent = st.title;
-    window.GL_curStep = curStep; window.GL_paintBpage && GL_paintBpage();
+    window.GL_curStep = curStep; window.GL_paintBpage && GL_paintBpage(); window.GL_paintStart && GL_paintStart();
+    if (changed && window.GL_onStepChanged) GL_onStepChanged();
     $('#ls-prev').disabled = curStep <= 0;
     $('#ls-next').disabled = curStep >= ST.length - 1;
     const nx = ST[curStep + 1];
@@ -144,8 +145,10 @@
   }
   // games stay hidden on phones + board until the chair starts them
   let iaOpenNow = -1;
-  function paintGo() { const on = iaOpenNow >= curStep; const b = $('#ls-ia-go'); b.textContent = on ? '■ Hide game' : '▶ Start game'; b.classList.toggle('green', !on); b.classList.toggle('pink', on); $('#ls-ia-wrap').classList.toggle('waiting', !on); }
+  function paintGo() {
+    window.GL_paintStart && setTimeout(GL_paintStart, 0); const on = iaOpenNow >= curStep; const b = $('#ls-ia-go'); b.textContent = on ? '■ Hide game' : '▶ Start game'; b.classList.toggle('green', !on); b.classList.toggle('pink', on); $('#ls-ia-wrap').classList.toggle('waiting', !on); }
   window.GL_iaOpen = v => { iaOpenNow = v; paintGo(); };
+  window.GL_iaOn = () => iaOpenNow >= curStep;
   $('#ls-ia-go').addEventListener('click', async () => {
     const on = iaOpenNow >= curStep;
     const { data, error } = await sb.rpc('gridline_ia_set', { p_pin: PIN, p_step: curStep, p_on: !on });
@@ -488,6 +491,25 @@
   }
   // called by the timer / groups panes: only pushes if that thing is what the board shows
   window.GL_boardSync = m => { if (mode === m) set(m); };
+  // ▶ Start on every step: phone games open (board -> game page); other steps get a big countdown on the board
+  let tStep = -1;
+  // unlocking the next step brings the board back from a step timer
+  window.GL_onStepChanged = () => { if (mode === 'timer' && tStep >= 0 && tStep !== window.GL_curStep) { set('step'); tStep = -1; } };
+  window.GL_paintStart = () => {
+    const st = GL_STEPS[window.GL_curStep], b = $('#ls-start'); if (!st || !b) return;
+    const on = st.ia ? !!(window.GL_iaOn && GL_iaOn()) : (mode === 'timer' && tStep === window.GL_curStep);
+    b.textContent = st.ia ? (on ? '■ Hide game' : '▶ Start game') : (on ? '■ Stop timer' : `▶ Start · ${st.m} min on board`);
+    b.classList.toggle('green', !on); b.classList.toggle('pink', on);
+  };
+  $('#ls-start').addEventListener('click', async () => {
+    const st = GL_STEPS[window.GL_curStep]; if (!st) return;
+    if (st.ia) { $('#ls-ia-go').click(); return; }
+    if (mode === 'timer' && tStep === window.GL_curStep) { await set('step'); tStep = -1; GL_paintStart(); return; }
+    const secs = st.m * 60;
+    const { error } = await sb.rpc('gridline_set_board', { p_pin: pin(), p_mode: 'timer', p_data: { label: st.title.toUpperCase(), total: secs, left: secs, endAt: Date.now() + secs * 1000, running: true, step: window.GL_curStep } });
+    if (error) { alert('Could not start: ' + error.message); return; }
+    mode = 'timer'; tStep = window.GL_curStep; paint(); GL_paintStart(); window.FX && FX.zap && FX.zap('up');
+  });
   // two board pages per step: 0 = title + rules, 1 = content / game
   let bpage = 0, bstep = -1;
   const curPage = () => (mode === 'step' && bstep === window.GL_curStep) ? bpage : 0;
@@ -503,7 +525,7 @@
   };
   $('#ls-bpage').addEventListener('click', () => { GL_boardPage(curPage() === 1 ? 0 : 1); window.FX && FX.zap && FX.zap('up'); });
   document.querySelectorAll('#rb-seg button').forEach(b => b.addEventListener('click', () => { set(b.dataset.bm); window.FX && FX.zap && FX.zap('up'); }));
-  const take = d => { if (!d) return; mode = d.mode; bpage = +(d.data && d.data.page) || 0; bstep = d.data && typeof d.data.step === 'number' ? d.data.step : -1; paint(); window.GL_paintBpage && GL_paintBpage(); };
+  const take = d => { if (!d) return; mode = d.mode; tStep = d.mode === 'timer' && d.data && typeof d.data.step === 'number' ? d.data.step : -1; bpage = +(d.data && d.data.page) || 0; bstep = d.data && typeof d.data.step === 'number' ? d.data.step : -1; paint(); window.GL_paintBpage && GL_paintBpage(); window.GL_paintStart && GL_paintStart(); };
   sb.from('gridline_board').select('mode, data').eq('id', 1).maybeSingle().then(({ data }) => take(data));
   sb.channel('chair-board').on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_board' }, p => take(p.new)).subscribe();
 })();

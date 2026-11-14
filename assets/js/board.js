@@ -187,12 +187,50 @@
   pull(); setInterval(pull, 8000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pull(); });
 
+  /* ---------- DEBRIEF: big happy full screen (count only, never answers) ---------- */
+  const dbCss = document.createElement('style');
+  dbCss.textContent = `
+  .bd-db { position: fixed; inset: 0; z-index: 9200; display: grid; place-items: center; text-align: center; overflow: hidden;
+    background: radial-gradient(70% 60% at 50% 45%, rgba(155,123,255,.28), transparent 70%), radial-gradient(50% 40% at 20% 80%, rgba(255,61,127,.22), transparent 70%), radial-gradient(50% 40% at 85% 20%, rgba(61,242,255,.22), transparent 70%), #04060d; }
+  .bd-db[hidden] { display: none; }
+  .bd-db h1 { margin: 0; font-size: min(14.5vw, 28vh); line-height: .9; font-weight: 900; font-stretch: 125%; letter-spacing: -.02em;
+    background: linear-gradient(100deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff, #9b7bff, #ff3d7f); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: dbShift 4s linear infinite, dbBob 2.4s ease-in-out infinite; filter: drop-shadow(0 0 40px rgba(255,225,77,.35)); }
+  @keyframes dbShift { to { background-position: 200% 0; } }
+  @keyframes dbBob { 50% { transform: translateY(-2vh) rotate(-1.5deg); } }
+  .bd-db .k { font: 500 clamp(16px, 2.2vw, 34px) var(--f-mono); letter-spacing: .35em; color: var(--cyan); text-transform: uppercase; }
+  .bd-db .q { margin: 3vh auto 0; max-width: 24ch; font-size: clamp(26px, 4vw, 64px); font-weight: 800; line-height: 1.1; }
+  .bd-db .n { margin-top: 3vh; display: inline-block; padding: 1.4vh 2.6vw; border-radius: 999px; font: 600 clamp(18px, 2.4vw, 40px) var(--f-mono); color: #04060d; background: linear-gradient(90deg, #4dffa6, #3df2ff); box-shadow: 0 0 40px rgba(77,255,166,.45); }
+  .bd-db .fl { position: absolute; font-size: clamp(36px, 6vw, 110px); animation: dbFloat linear infinite; opacity: .5; z-index: 0; }
+  .bd-db .n:empty { display: none; }
+  @keyframes dbFloat { from { transform: translateY(110vh) rotate(0); } to { transform: translateY(-20vh) rotate(360deg); } }`;
+  document.head.append(dbCss);
+  const dbx = document.createElement('div'); dbx.className = 'bd-db'; dbx.hidden = true;
+  const EMO = ['🤩', '🙂', '😐', '🗣', '💬', '⚡', '🎉', '💛', '🔋', '✨'];
+  dbx.innerHTML = EMO.map((e, i) => `<span class="fl" style="left:${(i * 10 + 3) % 96}%;animation-duration:${9 + (i % 4) * 2.5}s;animation-delay:-${i * 1.3}s">${e}</span>`).join('') +
+    '<div style="position:relative;z-index:1;padding:0 4vw"><div class="k">ITRE · time to talk</div><h1>DEBRIEF!</h1><div class="q"></div><div class="n"></div></div>';
+  document.body.append(dbx);
+
   /* ---------- energy prompt (count only) ---------- */
-  let eOpen = false;
-  async function count() { if (!eOpen) return; const { data: n } = await sb.rpc('gridline_energy_count'); if (typeof n === 'number') en.querySelector('span').textContent = `${n} sent`; }
+  let eOpen = false, eKind = 'energy';
+  async function count() {
+    if (!eOpen) return;
+    const { data: n } = await sb.rpc('gridline_energy_count');
+    if (typeof n !== 'number') return;
+    en.querySelector('span').textContent = `${n} sent`;
+    dbx.querySelector('.n').textContent = `${n} answered on their phones`;
+  }
   window.GL_onBoardEnergy = row => {
-    const o = !!row.energy_open;
+    const o = !!row.energy_open, k = row.energy_kind === 'debrief' ? 'debrief' : 'energy';
+    if (o && k === 'debrief') {
+      en.hidden = true;
+      dbx.querySelector('.q').textContent = row.energy_q || 'How was today for you? Pick 1–5 on your phone.';
+      if (dbx.hidden || eKind !== 'debrief') { dbx.hidden = false; animate(dbx.querySelector('h1'), { scale: [.3, 1.08, 1], opacity: [0, 1] }, { duration: .9 }); window.FX && FX.zap && FX.zap('up'); }
+      eKind = k; eOpen = true; document.documentElement.classList.remove('bd-en'); count(); return;
+    }
+    dbx.hidden = true; eKind = k;
     if (o && !eOpen) { en.hidden = false; animate(en, { y: [80, 0], opacity: [0, 1] }, { type: 'spring', bounce: .35 }); }
+    if (o) en.hidden = false;
     if (!o) en.hidden = true;
     document.documentElement.classList.toggle('bd-en', o); setTimeout(() => { fitStep(); fitOv(); }, 50);
     eOpen = o; count();
