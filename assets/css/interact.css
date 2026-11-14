@@ -242,3 +242,4 @@
 .tt-row em { font-style: normal; font-size: 11px; color: var(--volt); }
 .ia.proj .tt-name { font-size: clamp(32px, 4vw, 64px); } .ia.proj .tt-s { font-size: clamp(18px, 2vw, 30px); } .ia.proj .tt-big { font-size: clamp(30px, 4vw, 60px); } .ia.proj .tt-clock { font-size: clamp(32px, 5vw, 72px); }
 body.pmode .tt-all, .ls-ia:fullscreen .tt-all { display: none !important; }
+.sx-face small { max-width: 86%; text-align: center; line-height: 1.35; color: var(--ink); font-size: 14px; }
