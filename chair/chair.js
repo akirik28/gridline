@@ -112,6 +112,7 @@
   let curStep = 0, stepAt = Date.now(), busy = false;
   function paintSteps(s) {
     if (s.step == null) return;
+    if (typeof s.ia_open === 'number' && window.GL_iaOpen) setTimeout(() => GL_iaOpen(s.ia_open), 0);
     const changed = s.step !== curStep;
     curStep = Math.min(s.step, ST.length - 1); stepAt = new Date(s.step_at).getTime();
     const st = ST[curStep], d = GL_DAYS[st.d];
@@ -138,7 +139,18 @@
     const st = ST[curStep], wrap = $('#ls-ia-wrap');
     wrap.hidden = !st.ia;
     iaStop = window.GLIA ? GLIA.mount($('#ls-ia'), curStep, st.ia, { projector: true }) : () => {};
+    paintGo();
   }
+  // games stay hidden on phones + board until the chair starts them
+  let iaOpenNow = -1;
+  function paintGo() { const on = iaOpenNow >= curStep; const b = $('#ls-ia-go'); b.textContent = on ? '■ Hide game' : '▶ Start game'; b.classList.toggle('green', !on); b.classList.toggle('pink', on); $('#ls-ia-wrap').classList.toggle('waiting', !on); }
+  window.GL_iaOpen = v => { iaOpenNow = v; paintGo(); };
+  $('#ls-ia-go').addEventListener('click', async () => {
+    const on = iaOpenNow >= curStep;
+    const { data, error } = await sb.rpc('gridline_ia_set', { p_pin: PIN, p_step: curStep, p_on: !on });
+    if (error) { alert('Could not change the game: ' + error.message); return; }
+    iaOpenNow = data; paintGo(); FX.zap(on ? 'down' : 'up');
+  });
   $('#ls-ia-clear').addEventListener('click', async () => {
     if (!confirm('Delete all answers for this step? (e.g. new round of Two Truths and a Lie)')) return;
     try { const n = await GLIA.clear(PIN, curStep); FX.zap('down'); $('#ls-ia-clear').textContent = `Cleared ${n} ✓`; setTimeout(() => $('#ls-ia-clear').textContent = 'Clear answers', 1800); }

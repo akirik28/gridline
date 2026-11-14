@@ -8,7 +8,15 @@
   const bg = FX.grid($('#grid-bg'));
   FX.cursor();
 
-  let live = -1, liveAt = Date.now(), view = 0, entered = false, cleanup = [];
+  let live = -1, liveAt = Date.now(), view = 0, entered = false, cleanup = [], iaOpen = -1, iaStop = () => {};
+  // a step's game shows only once the chair pressed Start (earlier steps stay open)
+  const iaVisible = i => i < live || i <= iaOpen;
+  function mountIa() {
+    iaStop(); iaStop = () => {};
+    const st = S[view], box = $('#st-ia');
+    if (!st || !st.ia || !iaVisible(view)) { box.innerHTML = ''; box.hidden = true; return; }
+    iaStop = GLIA.mount(box, view, st.ia, { projector: !!window.GL_BOARD });
+  }
 
   /* ================= splash ================= */
   const splash = $('#splash'), pct = $('#sp-pct');
@@ -71,7 +79,7 @@
     });
     animate('#st-timer', { opacity: [0, 1], scaleX: [.6, 1] }, { delay: .6, duration: .6 });
     if (st.sec) enhance(box);
-    cleanup.push(GLIA.mount($('#st-ia'), view, st.ia, { projector: !!window.GL_BOARD }));
+    mountIa(); cleanup.push(() => { iaStop(); iaStop = () => {}; });
     $$('#dr-list .dr-step').forEach(b => b.classList.toggle('cur', +b.dataset.i === view));
   }
 
@@ -119,6 +127,8 @@
   /* ================= live state from the chair ================= */
   window.GL_onRow = async row => {
     const at = new Date(row.step_at).getTime();
+    const io = typeof row.ia_open === 'number' ? row.ia_open : -1;
+    if (io !== iaOpen) { const was = iaVisible(view); iaOpen = io; if (live !== -1 && entered && was !== iaVisible(view)) { mountIa(); if (iaVisible(view)) { FX.zap('up'); const b = $('#st-ia'); b.scrollIntoView({ behavior: 'smooth', block: 'start' }); } } }
     if (row.step === live) { if (at !== liveAt) { liveAt = at; timer(); } return; }
     const first = live === -1;
     const followed = view === live || first || !!window.GL_BOARD;

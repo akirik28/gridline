@@ -333,3 +333,6 @@ body.pmode .gc-in input { -webkit-text-security: disc; }
 .rb-seg button:first-child { grid-column: 1 / -1; }
 .rb-seg button.on { border-color: var(--cyan); background: rgba(61,242,255,.14); box-shadow: 0 0 14px rgba(61,242,255,.3); }
 .rail { overflow-y: auto; }
+.ls-ia.waiting #ls-ia { opacity: .45; filter: saturate(.4); }
+.ls-ia.waiting .ls-ia-bar::after { content: 'Hidden on phones + board until you press ▶ Start game'; display: block; width: 100%; order: 3; margin-top: 6px; font: 500 12px var(--f-mono); color: var(--volt); }
+.ls-ia-bar { flex-wrap: wrap; }
