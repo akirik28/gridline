@@ -77,6 +77,7 @@
   }
   function apply(s) {
     if (typeof window.GL_onRow === 'function') { try { window.GL_onRow(s); } catch (e) { console.error(e); } }
+    if (typeof window.GL_onEnergy === 'function') { try { window.GL_onEnergy(s); } catch (e) { console.error(e); } }
     if (s.seq === lastSeq) return;
     const first = lastSeq === -1; lastSeq = s.seq;
     render(s, { silent: first && !window.GL_AUDIO_OK });

@@ -175,3 +175,37 @@
 .ia.proj .sp-t { font-size: clamp(60px, 10vh, 140px); }
 .sp-face.over .sp-t { color: var(--pink); }
 .sp-tip { position: absolute; left: 0; right: 0; bottom: 24%; text-align: center; font-size: 12px; color: var(--a); letter-spacing: .08em; }
+
+/* ---------- rank ---------- */
+.rk-hint, .mk-hint { margin: 0 0 10px; font-size: 12px; color: var(--ink-2); letter-spacing: .06em; }
+.rk-pick { display: grid; gap: 8px; }
+.rk-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-radius: 14px; text-align: left; font: 600 16px var(--f-sans); color: var(--ink);
+  background: var(--panel); border: 1px solid var(--line-2); transition: border-color .2s, background .2s, opacity .2s; }
+.rk-btn b { flex: none; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; font-weight: 500; border: 1px dashed var(--line-2); color: #04060d; }
+.rk-btn.on { border-color: var(--c); background: color-mix(in srgb, var(--c) 12%, transparent); }
+.rk-btn.on b { background: var(--c); border: 0; box-shadow: 0 0 16px color-mix(in srgb, var(--c) 50%, transparent); }
+.rk-bar { display: flex; gap: 10px; margin-top: 12px; }
+.rk-bar .rk-go { flex: 1; }
+.rk-bar .rk-reset { flex: none; padding-left: 18px; padding-right: 18px; }
+.rk-bar .rk-go:disabled { opacity: .45; }
+.ia-rank:not(.voted) .ia-out { display: none; }
+.ia-rank.voted .ia-out { margin-top: 18px; }
+.rk-res { position: relative; display: flex; flex-direction: column; gap: 8px; }
+.rk-row { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; overflow: hidden;
+  background: var(--panel); border: 1px solid var(--line); transition: box-shadow .3s; }
+.rk-fill { position: absolute; inset: 0 auto 0 0; width: 0; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 40%, transparent), color-mix(in srgb, var(--c) 12%, transparent)); transition: width .7s cubic-bezier(.2,.8,.2,1); }
+.rk-pos, .rk-l, .rk-avg { position: relative; }
+.rk-pos { flex: none; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--c); color: #04060d; font-weight: 500; }
+.rk-l { flex: 1; font-weight: 600; }
+.rk-avg { display: block; font-style: normal; font-weight: 400; font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+.rk-row.top { border-color: var(--c); box-shadow: 0 0 24px color-mix(in srgb, var(--c) 35%, transparent); }
+.rk-row.mine .rk-avg::after { content: ' · your #1'; color: var(--c); }
+.ia.proj .rk-row { padding: 1.4vh 1.6vw; font-size: clamp(18px, 2vw, 34px); }
+.ia.proj .rk-pos { width: 1.6em; height: 1.6em; }
+.ia.proj .rk-avg { font-size: .6em; }
+
+/* ---------- mark (key words) ---------- */
+.mk-text { margin: 4px 0 12px; font-size: 19px; line-height: 1.75; }
+.mk-w { cursor: pointer; padding: 1px 2px; border-radius: 6px; transition: background .2s, color .2s; background-image: linear-gradient(var(--volt), var(--volt)); background-size: 0 3px; background-repeat: no-repeat; background-position: 0 100%; }
+.mk-w.on { color: var(--volt); background-size: 100% 3px; background-color: rgba(255,225,77,.1); }
+.ia.proj .mk-text { font-size: clamp(24px, 3vw, 52px); line-height: 1.6; }

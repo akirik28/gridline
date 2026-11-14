@@ -51,10 +51,10 @@
   }
 
   /* ---------- shared shell ---------- */
-  const LABEL = { poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER' };
+  const LABEL = { poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
   function shell(el, ia, proj) {
     el.innerHTML = `<div class="ia ia-${ia.type}${proj ? ' proj' : ''}">
-      <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${LABEL[ia.type]}</span><span class="ia-n mono" data-n>0 answers</span></div>
+      <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${esc(ia.tag || LABEL[ia.type])}</span><span class="ia-n mono" data-n>0 answers</span></div>
       <h3 class="ia-q">${esc(ia.q)}</h3>
       <div class="ia-in" data-in></div>
       <div class="ia-out" data-out></div>
@@ -342,7 +342,7 @@
   function ask(ui, step, ia, proj) {
     let rows = [];
     if (!proj) {
-      ui.inp.innerHTML = `<form class="wc-form tall"><textarea maxlength="${ia.max || 140}" rows="2" placeholder="${esc(ia.ph || 'Your question…')}"></textarea><button class="btn solid">Post ⚡</button></form>`;
+      ui.inp.innerHTML = `<form class="wc-form tall"><textarea maxlength="${ia.max || 140}" rows="2" placeholder="${esc(ia.ph || 'Your question…')}"></textarea><button class="btn solid">${esc(ia.btn || 'Post ⚡')}</button></form>`;
       const f = $('form', ui.inp), t = $('textarea', f), mine = getMine(step);
       if (mine) t.value = mine;
       f.addEventListener('submit', async e => {
@@ -351,10 +351,11 @@
         catch (err) { flash(ui.msg, err.message === 'step locked' ? 'This step is not open yet.' : 'Could not send — check your connection.', true); }
       });
     }
-    ui.out.innerHTML = '<div class="aw"><p class="wc-empty mono">No questions yet.</p></div>';
+    const EMPTY = `<p class="wc-empty mono">${esc(ia.empty || 'No questions yet.')}</p>`;
+    ui.out.innerHTML = `<div class="aw">${EMPTY}</div>`;
     function paint() {
       const aw = $('.aw', ui.out), have = new Map($$('.aw-q', aw).map(q => [q.dataset.d, q]));
-      if (rows.length) $('.wc-empty', aw)?.remove(); else if (!$('.wc-empty', aw)) aw.innerHTML = '<p class="wc-empty mono">No questions yet.</p>';
+      if (rows.length) $('.wc-empty', aw)?.remove(); else if (!$('.wc-empty', aw)) aw.innerHTML = EMPTY;
       [...rows].reverse().forEach((r, i) => {
         let q = have.get(r.device);
         if (!q) { q = document.createElement('div'); q.className = 'aw-q'; q.dataset.d = r.device; q.style.setProperty('--c', COLS[[...r.device].reduce((s, c) => s + c.charCodeAt(0), 0) % COLS.length]); aw.prepend(q); animate(q, { opacity: [0, 1], y: [-20, 0], scale: [.9, 1] }, { duration: .45 }); }
@@ -362,9 +363,86 @@
         have.delete(r.device);
       });
       have.forEach(q => q.remove());
-      count(ui.n, rows, 'question');
+      count(ui.n, rows, ia.noun || 'question');
     }
     return { set(r) { rows = r; paint(); }, paint };
+  }
+
+  /* ---------- RANK (tap the options in order; results = average position) ---------- */
+  function rank(ui, step, ia, proj) {
+    const N = ia.opts.length;
+    let rows = [], order = [];
+    const saved = getMine(step); if (saved) order = [...saved].map(Number).filter(i => i < N);
+    ui.out.innerHTML = `<div class="rk-res">${ia.opts.map((o, i) => `<div class="rk-row" data-i="${i}" style="--c:${COLS[i % COLS.length]}"><div class="rk-fill"></div><b class="rk-pos mono">–</b><span class="rk-l">${esc(o)}<i class="rk-avg mono"></i></span></div>`).join('')}</div>`;
+    if (!proj) {
+      ui.inp.innerHTML = `<p class="rk-hint mono">${esc(ia.hint || 'Tap in order — first tap = number 1')}</p>
+        <div class="rk-pick">${ia.opts.map((o, i) => `<button class="rk-btn" data-i="${i}" style="--c:${COLS[i % COLS.length]}"><b class="mono"></b><span>${esc(o)}</span></button>`).join('')}</div>
+        <div class="rk-bar"><button class="btn ghost rk-reset">Reset</button><button class="btn solid rk-go" disabled>Lock in ⚡</button></div>`;
+      const btns = $$('.rk-btn', ui.inp), go = $('.rk-go', ui.inp);
+      const draw = () => {
+        btns.forEach(b => { const k = order.indexOf(+b.dataset.i); b.classList.toggle('on', k >= 0); $('b', b).textContent = k >= 0 ? k + 1 : ''; });
+        go.disabled = order.length < N;
+        go.textContent = order.length < N ? `${N - order.length} to go…` : 'Lock in ⚡';
+      };
+      btns.forEach(b => b.addEventListener('click', e => {
+        const i = +b.dataset.i, k = order.indexOf(i);
+        if (k >= 0) order.splice(k); else { order.push(i); window.FX && FX.ripple && FX.ripple(b, e); animate(b, { scale: [.94, 1] }, { duration: .25 }); }
+        if (order.length === N - 1) order.push(...[...Array(N).keys()].filter(x => !order.includes(x)));
+        draw();
+      }));
+      $('.rk-reset', ui.inp).addEventListener('click', () => { order = []; draw(); });
+      go.addEventListener('click', async e => {
+        if (order.length < N) return;
+        window.FX && FX.ripple && FX.ripple(go, e);
+        const v = order.join('');
+        try { await respond(step, v); ui.refresh(); setMine(step, v); zap('up'); flash(ui.msg, 'Ranking locked ✓ — change it and lock again any time'); }
+        catch (err) { flash(ui.msg, err.message === 'step locked' ? 'This step is not open yet.' : 'Could not send — check your connection.', true); }
+      });
+      animate(btns, { opacity: [0, 1], x: [-24, 0] }, { delay: stagger(.06, { startDelay: .6 }) });
+      draw();
+    }
+    function paint() {
+      const valid = a => a.length === N && new Set(a).size === N && a.every(i => i >= 0 && i < N);
+      const ok = rows.map(r => [...r.value].map(Number)).filter(valid);
+      const mineRow = rows.find(r => r.device === DEV);
+      ui.root.classList.toggle('voted', proj || !!mineRow);
+      const sum = Array(N).fill(0), first = Array(N).fill(0);
+      ok.forEach(a => a.forEach((opt, pos) => { sum[opt] += pos + 1; if (pos === 0) first[opt]++; }));
+      const avg = sum.map(x => ok.length ? x / ok.length : 0);
+      const sorted = [...Array(N).keys()].sort((a, b) => ok.length ? avg[a] - avg[b] : a - b);
+      const els = $$('.rk-row', ui.out), before = new Map(els.map(el => [el, el.getBoundingClientRect().top]));
+      els.forEach(el => {
+        const i = +el.dataset.i, p = sorted.indexOf(i);
+        el.style.order = p;
+        $('.rk-pos', el).textContent = ok.length ? p + 1 : '–';
+        $('.rk-fill', el).style.width = ok.length ? ((N - avg[i]) / (N - 1) * 100) + '%' : '0%';
+        $('.rk-avg', el).textContent = ok.length ? `avg ${avg[i].toFixed(1)}${first[i] ? ` · ${first[i]}× #1` : ''}` : '';
+        el.classList.toggle('top', ok.length > 0 && p === 0);
+        el.classList.toggle('mine', !!mineRow && mineRow.value[0] === String(i));
+      });
+      els.forEach(el => { const d = before.get(el) - el.getBoundingClientRect().top; if (d && Math.abs(d) < 2000) animate(el, { y: [d, 0] }, { duration: .6, ease: [.2, .8, .2, 1] }); });
+      count(ui.n, ok, 'ranking');
+    }
+    return { set(r) { rows = r; paint(); }, paint };
+  }
+
+  /* ---------- MARK (tap the key words — local; on the projector the chair marks live) ---------- */
+  function mark(ui, step, ia, proj) {
+    const key = 'gl-mark-' + step;
+    let on = new Set(); try { on = new Set(JSON.parse(localStorage.getItem(key) || '[]')); } catch (e) {}
+    let w = 0;
+    ui.out.innerHTML = `<p class="mk-text">${ia.text.split(/(\s+)/).map(p => !p || /^\s+$/.test(p) ? p : `<span class="mk-w" data-w="${w++}">${esc(p)}</span>`).join('')}</p>
+      <p class="mk-hint mono">${esc(ia.hint || 'Tap the key words to underline them')}</p>`;
+    const words = $$('.mk-w', ui.out);
+    const draw = () => { words.forEach(s => s.classList.toggle('on', on.has(+s.dataset.w))); ui.n.textContent = `${on.size} marked`; };
+    words.forEach(s => s.addEventListener('click', () => {
+      const i = +s.dataset.w; on.has(i) ? on.delete(i) : on.add(i);
+      try { localStorage.setItem(key, JSON.stringify([...on])); } catch (e) {}
+      if (on.has(i)) animate(s, { scale: [1.18, 1] }, { duration: .3 });
+      draw();
+    }));
+    draw();
+    return { local: true };
   }
 
   /* ---------- SPEECH (local practice timer) ---------- */
@@ -399,7 +477,7 @@
     return { local: true, stop: () => clearInterval(raf) };
   }
 
-  const KINDS = { poll, scale, words, quiz, deck, secret, facts, ask, speech };
+  const KINDS = { poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
 
   function mountOne(el, step, ia, o) {
     const ui = shell(el, ia, !!o.projector);
