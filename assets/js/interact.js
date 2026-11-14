@@ -21,15 +21,54 @@
   /* ---------- data layer ---------- */
   let sb = null, chan = null;
   const subs = new Set();
+  /* sequential deck (e.g. Speed Dating): only the chair moves the rounds; phones + board follow */
+  function deckSync(ui, step, ia, o) {
+    const cards = ia.cards, ctl = !!o.control;
+    let k = -1;
+    ui.n.hidden = true;
+    ui.inp.innerHTML = `<div class="dk"><div class="dk-stack"><i></i><i></i><article class="dk-card"><span class="dk-no mono"></span><p class="dk-q"></p></article></div>
+      ${ctl ? '<div class="dk-nav"><button class="btn ghost dk-prev">← Round</button><button class="btn solid dk-next">Next round →</button></div>' : '<p class="dk-wait mono">Your chair moves to the next question</p>'}</div>`;
+    const card = $('.dk-card', ui.inp);
+    const show = (pos, dir) => {
+      pos = Math.max(0, Math.min(pos, cards.length - 1));
+      if (pos === k) return; dir = dir || (pos > k ? 1 : -1); k = pos;
+      $('.dk-no', card).textContent = `ROUND ${k + 1} / ${cards.length}`;
+      $('.dk-q', card).textContent = cards[k];
+      card.style.setProperty('--c', COLS[k % COLS.length]);
+      if (ctl) { $('.dk-prev', ui.inp).disabled = k === 0; $('.dk-next', ui.inp).disabled = k >= cards.length - 1; }
+      animate(card, { rotateY: [dir * 90, 0], opacity: [0, 1], x: [dir * 60, 0] }, { duration: .5, ease: [.2, .8, .2, 1] });
+      if (!ctl && k > 0) { zap('up'); if (navigator.vibrate) try { navigator.vibrate(30); } catch (e) {} }
+    };
+    const stop = onAlert(a => show(a.deck_step === step ? a.deck_pos : 0));
+    if (k < 0) show(0, 1);
+    if (ctl) {
+      const go = async d => {
+        const want = Math.max(0, Math.min(k + d, cards.length - 1));
+        const c = client(); if (!c) return;
+        const { error } = await c.rpc('gridline_deck_set', { p_pin: o.pin || '', p_step: step, p_pos: want });
+        if (error) { flash(ui.msg, 'Could not move the deck: ' + error.message, true); return; }
+        zap(d > 0 ? 'up' : 'down'); show(want, d);
+      };
+      $('.dk-next', ui.inp).addEventListener('click', () => go(1));
+      $('.dk-prev', ui.inp).addEventListener('click', () => go(-1));
+    }
+    return { local: true, stop };
+  }
   function client() {
     if (sb || !window.supabase) return sb;
     sb = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth: { persistSession: false } });
     let t;
     chan = sb.channel('gridline-resp')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_resp' }, () => { clearTimeout(t); t = setTimeout(() => subs.forEach(f => f()), 250); })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_alert' }, p => { if (p.new) { lastAlert = p.new; aSubs.forEach(f => f(p.new)); } })
       .subscribe();
+    const pullAlert = () => sb.from('gridline_alert').select('deck_step, deck_pos').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { lastAlert = data; aSubs.forEach(f => f(data)); } });
+    pullAlert(); setInterval(pullAlert, 6000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) pullAlert(); });
     return sb;
   }
+  let lastAlert = null; const aSubs = new Set();
+  function onAlert(fn) { client(); aSubs.add(fn); if (lastAlert) fn(lastAlert); return () => aSubs.delete(fn); }
   // a widget key is the step index, or "step.slot" for a second widget on the same step
   const parse = k => { const [a, b] = String(k).split('.'); return { step: +a, slot: +(b || 0) }; };
   async function fetchRows(key) {
@@ -250,8 +289,9 @@
   }
 
   /* ---------- DECK (local question cards) ---------- */
-  function deck(ui, step, ia, proj) {
+  function deck(ui, step, ia, proj, o = {}) {
     const cards = ia.cards, seq = ia.mode !== 'shuffle';
+    if (seq) return deckSync(ui, step, ia, o);
     let k = 0, order = cards.map((_, i) => i);
     if (!seq) for (let i = order.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [order[i], order[j]] = [order[j], order[i]]; }
     ui.n.hidden = true;
@@ -484,7 +524,7 @@
     let alive = true, w;
     async function pull() { const r = await fetchRows(step).catch(() => null); if (alive && r && w && w.set) w.set(r); }
     ui.refresh = () => pull();
-    w = KINDS[ia.type](ui, step, ia, !!o.projector);
+    w = KINDS[ia.type](ui, step, ia, !!o.projector, o);
     if (w.local) return () => { alive = false; w.stop && w.stop(); };
     pull(); subs.add(pull);
     const iv = setInterval(pull, 6000);

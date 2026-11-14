@@ -140,7 +140,7 @@
     iaFor = curStep; iaStop();
     const st = ST[curStep], wrap = $('#ls-ia-wrap');
     wrap.hidden = !st.ia;
-    iaStop = window.GLIA ? GLIA.mount($('#ls-ia'), curStep, st.ia, { projector: true }) : () => {};
+    iaStop = window.GLIA ? GLIA.mount($('#ls-ia'), curStep, st.ia, { projector: true, control: true, pin: PIN }) : () => {};
     paintGo();
   }
   // games stay hidden on phones + board until the chair starts them
