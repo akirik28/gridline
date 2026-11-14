@@ -118,6 +118,7 @@
     const st = ST[curStep], d = GL_DAYS[st.d];
     $('#ls-meta').textContent = `On every screen now · Step ${pad2(curStep + 1)}/${ST.length} · ${d.label}`;
     $('#ls-title').textContent = st.title;
+    window.GL_curStep = curStep; window.GL_paintBpage && GL_paintBpage();
     $('#ls-prev').disabled = curStep <= 0;
     $('#ls-next').disabled = curStep >= ST.length - 1;
     const nx = ST[curStep + 1];
@@ -150,6 +151,7 @@
     const { data, error } = await sb.rpc('gridline_ia_set', { p_pin: PIN, p_step: curStep, p_on: !on });
     if (error) { alert('Could not change the game: ' + error.message); return; }
     iaOpenNow = data; paintGo(); FX.zap(on ? 'down' : 'up');
+    if (!on && window.GL_boardPage) GL_boardPage(1); // game starts -> board shows the game page
   });
   $('#ls-ia-clear').addEventListener('click', async () => {
     if (!confirm('Delete all answers for this step? (e.g. new round of Two Truths and a Lie)')) return;
@@ -478,7 +480,7 @@
   const pin = () => { try { return sessionStorage.getItem('glc-pin') || ''; } catch (e) { return ''; } };
   let mode = 'step';
   const paint = () => document.querySelectorAll('#rb-seg button').forEach(b => b.classList.toggle('on', b.dataset.bm === mode));
-  const payload = m => m === 'timer' ? (window.GL_timerData ? GL_timerData() : {}) : m === 'groups' ? { groups: window.GL_lastGroups || [] } : {};
+  const payload = m => m === 'step' ? { page: 0, step: window.GL_curStep } : m === 'timer' ? (window.GL_timerData ? GL_timerData() : {}) : m === 'groups' ? { groups: window.GL_lastGroups || [] } : {};
   async function set(m) {
     const { error } = await sb.rpc('gridline_set_board', { p_pin: pin(), p_mode: m, p_data: payload(m) });
     if (error) { alert('Could not change the board: ' + error.message); return; }
@@ -486,7 +488,22 @@
   }
   // called by the timer / groups panes: only pushes if that thing is what the board shows
   window.GL_boardSync = m => { if (mode === m) set(m); };
+  // two board pages per step: 0 = title + rules, 1 = content / game
+  let bpage = 0, bstep = -1;
+  const curPage = () => (mode === 'step' && bstep === window.GL_curStep) ? bpage : 0;
+  window.GL_paintBpage = () => {
+    const b = $('#ls-bpage'); if (!b) return;
+    const st = GL_STEPS[window.GL_curStep]; b.hidden = !(st && (st.sec || st.ia));
+    b.textContent = curPage() === 1 ? '📺 Board: ← Rules' : '📺 Board: Continue →';
+  };
+  window.GL_boardPage = async n => {
+    const { error } = await sb.rpc('gridline_set_board', { p_pin: pin(), p_mode: 'step', p_data: { page: n, step: window.GL_curStep } });
+    if (error) { alert('Could not change the board: ' + error.message); return; }
+    mode = 'step'; bpage = n; bstep = window.GL_curStep; paint(); GL_paintBpage();
+  };
+  $('#ls-bpage').addEventListener('click', () => { GL_boardPage(curPage() === 1 ? 0 : 1); window.FX && FX.zap && FX.zap('up'); });
   document.querySelectorAll('#rb-seg button').forEach(b => b.addEventListener('click', () => { set(b.dataset.bm); window.FX && FX.zap && FX.zap('up'); }));
-  sb.from('gridline_board').select('mode').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { mode = data.mode; paint(); } });
-  sb.channel('chair-board').on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_board' }, p => { if (p.new) { mode = p.new.mode; paint(); } }).subscribe();
+  const take = d => { if (!d) return; mode = d.mode; bpage = +(d.data && d.data.page) || 0; bstep = d.data && typeof d.data.step === 'number' ? d.data.step : -1; paint(); window.GL_paintBpage && GL_paintBpage(); };
+  sb.from('gridline_board').select('mode, data').eq('id', 1).maybeSingle().then(({ data }) => take(data));
+  sb.channel('chair-board').on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_board' }, p => take(p.new)).subscribe();
 })();

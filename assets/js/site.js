@@ -134,7 +134,7 @@
     if (row.step === live) { if (at !== liveAt) { liveAt = at; timer(); } return; }
     const first = live === -1;
     const followed = view === live || first || !!window.GL_BOARD;
-    live = Math.min(row.step, N - 1); liveAt = at;
+    live = Math.min(row.step, N - 1); liveAt = at; window.GL_liveStep = live;
     buildDrawer();
     if (first) { view = live; if (entered) render(view); else prefill(); return; }
     if (followed || view > live) {
