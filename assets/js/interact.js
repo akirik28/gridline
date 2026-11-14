@@ -54,6 +54,78 @@
     }
     return { local: true, stop };
   }
+  /* ---------- TWO TRUTHS AND A LIE ----------
+     phones write 3 statements (+ secret lie) in 2:30 → chair picks a random person → committee agrees → chair marks the guess → reveal */
+  function ttl(ui, step, ia, proj, o = {}) {
+    const ctl = !!o.control, LIMIT = (ia.secs || 150) * 1000;
+    const tKey = 'gl-ttl-t0-' + step, sKey = 'gl-ttl-sent-' + step;
+    const get = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+    const put = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+    let t0 = +get(tKey) || 0; if (!t0 && !ctl) { t0 = Date.now(); put(tKey, t0); }
+    if (ctl || proj) t0 = Date.now();
+    let cur = null, cnt = { n: 0, left: 0 }, lie = -1, status = [];
+    ui.n.textContent = '';
+    const c = client();
+    const fmt = ms => { const x = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
+    function cardHTML() {
+      const rev = cur.revealed;
+      return `<div class="tt-card"><div class="tt-who mono">${rev ? (cur.right ? 'THE COMMITTEE GOT IT 🎉' : 'FOOLED YOU 😈') : 'WHICH ONE IS THE LIE?'}</div>
+        <h4 class="tt-name">${esc(cur.name)}</h4>
+        <div class="tt-st">${cur.s.map((x, i) => `<div class="tt-s${rev && i === cur.lie ? ' lie' : ''}${rev && i !== cur.lie ? ' truth' : ''}${rev && i === cur.guess ? ' guess' : ''}" data-i="${i}" style="--c:${COLS[i]}"><b class="mono">${i + 1}</b><span>${esc(x)}</span>${rev ? `<em class="mono">${i === cur.lie ? 'LIE' : 'TRUE'}${i === cur.guess ? ' · committee pick' : ''}</em>` : ''}</div>`).join('')}</div></div>`;
+    }
+    function draw() {
+      const live = cur && !cur.done && cur.s;
+      if (ctl) {
+        ui.inp.innerHTML = `<div class="tt-ctl"><p class="mono tt-cnt">${cnt.n} wrote theirs · ${cnt.left} not shown yet</p>
+          ${live ? cardHTML() : `<p class="tt-hint">${cur && cur.done ? 'Everyone has been shown 🎉' : 'Wait ~2:30 while everyone writes, then pick someone.'}</p>`}
+          <div class="tt-btns">${live && !cur.revealed ? `<span class="mono tt-lbl">Committee agreed? Mark the lie:</span>${[0, 1, 2].map(i => `<button class="btn tt-mark" data-i="${i}" style="--c:${COLS[i]}">${i + 1} is the lie</button>`).join('')}` :
+            `<button class="btn solid tt-pick">🎲 ${live ? 'Next person' : 'Pick a random person'}</button>`}
+            <button class="btn ghost tt-reset">Reset game</button></div>
+          <div class="tt-all" data-private>${status.length ? `<div class="mono tt-lbl">Everyone (only you see this)</div>` + status.map(p => `<div class="tt-row${p.shown ? ' done' : ''}"><b>${esc(p.name)}</b>${p.s.map((x, i) => `<span class="${i === p.lie ? 'lie' : ''}">${i + 1}. ${esc(x)}</span>`).join('')}<em class="mono">${p.guess == null ? (p.shown ? 'on screen' : 'waiting') : p.guess === p.lie ? '✓ spotted' : '✗ fooled us'}</em></div>`).join('') : ''}</div></div>`;
+        const pick = $('.tt-pick', ui.inp);
+        pick && pick.addEventListener('click', async () => { const { error } = await c.rpc('gridline_ttl_pick', { p_pin: o.pin || '' }); if (error) return flash(ui.msg, error.message, true); zap('up'); refresh(); });
+        ui.inp.querySelectorAll('.tt-mark').forEach(b => b.addEventListener('click', async () => {
+          const { error } = await c.rpc('gridline_ttl_reveal', { p_pin: o.pin || '', p_guess: +b.dataset.i }); if (error) return flash(ui.msg, error.message, true); zap('up'); refresh();
+        }));
+        $('.tt-reset', ui.inp).addEventListener('click', async () => { if (!confirm('Delete everyone’s statements and start Two Truths again?')) return; const { error } = await c.rpc('gridline_ttl_reset', { p_pin: o.pin || '' }); if (error) return flash(ui.msg, error.message, true); refresh(); });
+        return;
+      }
+      if (live) { ui.inp.innerHTML = cardHTML(); if (cur.revealed) animate($('.tt-s.lie', ui.inp), { scale: [1, 1.06, 1] }, { duration: .6 }); return; }
+      if (proj) {
+        ui.inp.innerHTML = `<div class="tt-wait"><div class="tt-big">✍️ 2 truths + 1 lie</div><p>Write yours on your phone</p><div class="tt-clock mono" data-clock></div><p class="mono tt-cnt">${cnt.n} written</p></div>`;
+        return;
+      }
+      const sent = get(sKey);
+      if (sent) { ui.inp.innerHTML = `<div class="tt-wait"><div class="tt-big">✓ Locked in</div><p>Wait for your chair — someone’s name comes up soon. Poker face!</p><button class="btn ghost tt-edit">Edit mine</button></div>`;
+        $('.tt-edit', ui.inp).addEventListener('click', () => { try { localStorage.removeItem(sKey); } catch (e) {} draw(); }); return; }
+      ui.inp.innerHTML = `<form class="tt-form"><div class="tt-clock mono" data-clock></div>
+        ${[0, 1, 2].map(i => `<label class="tt-in" style="--c:${COLS[i]}"><b class="mono">${i + 1}</b><textarea maxlength="160" rows="2" placeholder="Statement ${i + 1}"></textarea><button type="button" class="tt-lie" data-i="${i}">This is my lie</button></label>`).join('')}
+        <button class="btn solid tt-go" disabled>Lock in ⚡</button></form>`;
+      const f = $('form', ui.inp), go = $('.tt-go', f), tas = [...f.querySelectorAll('textarea')];
+      const ok = () => { go.disabled = !(tas.every(t => t.value.trim().length > 1) && lie >= 0); go.textContent = lie < 0 ? 'Tap “This is my lie” on one' : 'Lock in ⚡'; };
+      f.querySelectorAll('.tt-lie').forEach(b => b.addEventListener('click', () => { lie = +b.dataset.i; f.querySelectorAll('.tt-in').forEach((l, i) => l.classList.toggle('is-lie', i === lie)); ok(); }));
+      tas.forEach(t => t.addEventListener('input', ok)); ok();
+      f.addEventListener('submit', async e => {
+        e.preventDefault(); go.disabled = true;
+        const { error } = await c.rpc('gridline_ttl_submit', { p_device: DEV, p_s1: tas[0].value, p_s2: tas[1].value, p_s3: tas[2].value, p_lie: lie });
+        if (error) { go.disabled = false; return flash(ui.msg, 'Could not send — check your connection.', true); }
+        put(sKey, '1'); zap('up'); draw();
+      });
+    }
+    const tick = () => { const el = $('[data-clock]', ui.inp); if (!el) return; const left = LIMIT - (Date.now() - t0); el.textContent = left > 0 ? `⏱ ${fmt(left)}` : '⏱ time’s up!'; el.classList.toggle('late', left < 30000); };
+    async function refresh() {
+      const r = await c.rpc('gridline_ttl_count'); if (r.data) cnt = r.data;
+      if (ctl) { const q = await c.rpc('gridline_ttl_status', { p_pin: o.pin || '' }); if (q.data) status = q.data; draw(); return; }
+      // phones/board: never redraw a half-typed form — only update the counter
+      const e = $('.tt-cnt', ui.inp); if (e) e.textContent = `${cnt.n} written`;
+    }
+    let last = '';
+    const stop = onAlert(a => { const k = JSON.stringify(a.ttl_cur || null); if (k === last) return; last = k; cur = a.ttl_cur || null; draw(); if (ctl) refresh(); });
+    draw(); refresh();
+    const iv = setInterval(() => { if (!cur || ctl) refresh(); }, 4000), tv = setInterval(tick, 500);
+    return { local: true, stop: () => { stop(); clearInterval(iv); clearInterval(tv); } };
+  }
+
   function client() {
     if (sb || !window.supabase) return sb;
     sb = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth: { persistSession: false } });
@@ -62,7 +134,7 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_resp' }, () => { clearTimeout(t); t = setTimeout(() => subs.forEach(f => f()), 250); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_alert' }, p => { if (p.new) { lastAlert = p.new; aSubs.forEach(f => f(p.new)); } })
       .subscribe();
-    const pullAlert = () => sb.from('gridline_alert').select('deck_step, deck_pos').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { lastAlert = data; aSubs.forEach(f => f(data)); } });
+    const pullAlert = () => sb.from('gridline_alert').select('deck_step, deck_pos, ttl_cur').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { lastAlert = data; aSubs.forEach(f => f(data)); } });
     pullAlert(); setInterval(pullAlert, 6000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pullAlert(); });
     return sb;
@@ -90,7 +162,7 @@
   }
 
   /* ---------- shared shell ---------- */
-  const LABEL = { poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
+  const LABEL = { ttl: 'TWO TRUTHS · ONE LIE', poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
   function shell(el, ia, proj) {
     el.innerHTML = `<div class="ia ia-${ia.type}${proj ? ' proj' : ''}">
       <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${esc(ia.tag || LABEL[ia.type])}</span><span class="ia-n mono" data-n>0 answers</span></div>
@@ -517,7 +589,7 @@
     return { local: true, stop: () => clearInterval(raf) };
   }
 
-  const KINDS = { poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
+  const KINDS = { ttl, poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
 
   function mountOne(el, step, ia, o) {
     const ui = shell(el, ia, !!o.projector);

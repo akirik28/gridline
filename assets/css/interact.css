@@ -212,3 +212,33 @@
 
 .dk-wait { margin: 14px 0 0; text-align: center; font-size: 12px; letter-spacing: .12em; color: var(--ink-2); }
 .ia.proj .dk-wait { display: none; }
+
+/* ---------- two truths and a lie ---------- */
+.tt-clock { text-align: center; font-size: 28px; color: var(--cyan); margin: 4px 0 12px; } .tt-clock.late { color: var(--pink); }
+.tt-form { display: grid; gap: 10px; }
+.tt-in { display: grid; grid-template-columns: 30px 1fr; gap: 8px 10px; align-items: start; padding: 10px; border-radius: 16px; border: 1px solid var(--line-2); }
+.tt-in b { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; background: var(--c); color: #04060d; }
+.tt-in textarea { width: 100%; resize: none; border: 0; background: transparent; color: var(--ink); font: 16px var(--f-sans); outline: none; }
+.tt-lie { grid-column: 2; justify-self: start; padding: 6px 12px; border-radius: 999px; border: 1px dashed var(--line-2); background: transparent; color: var(--ink-2); font: 600 12px var(--f-mono); }
+.tt-in.is-lie { border-color: var(--pink); background: rgba(255,61,127,.08); }
+.tt-in.is-lie .tt-lie { border-style: solid; border-color: var(--pink); color: #fff; background: var(--pink); }
+.tt-in.is-lie .tt-lie::after { content: ' 🤫'; }
+.tt-go { width: 100%; }
+.tt-wait { text-align: center; padding: 10px 0; } .tt-big { font-size: 28px; font-weight: 900; } .tt-wait p { color: var(--ink-2); }
+.tt-cnt { color: var(--ink-2); font-size: 12px; letter-spacing: .08em; text-align: center; }
+.tt-card { text-align: center; } .tt-who { color: var(--volt); letter-spacing: .2em; font-size: 12px; }
+.tt-name { margin: 6px 0 14px; font-size: 30px; font-weight: 900; background: linear-gradient(90deg, var(--cyan), var(--volt)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tt-st { display: grid; gap: 10px; text-align: left; }
+.tt-s { position: relative; display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 14px 16px; border-radius: 16px; border: 2px solid color-mix(in srgb, var(--c) 50%, transparent); background: color-mix(in srgb, var(--c) 8%, transparent); font-size: 18px; font-weight: 600; transition: opacity .4s; }
+.tt-s b { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; background: var(--c); color: #04060d; }
+.tt-s.truth { opacity: .45; } .tt-s.lie { border-color: var(--pink); background: rgba(255,61,127,.16); box-shadow: 0 0 30px rgba(255,61,127,.35); }
+.tt-s em { font-style: normal; font-size: 11px; color: var(--ink-2); } .tt-s.lie em { color: var(--pink); font-weight: 700; }
+.tt-s.guess { outline: 3px dashed var(--volt); outline-offset: 3px; }
+.tt-ctl .tt-hint { color: var(--ink-2); }
+.tt-btns { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px; } .tt-lbl { font-size: 11px; color: var(--ink-2); letter-spacing: .08em; width: 100%; }
+.tt-all { margin-top: 18px; display: grid; gap: 8px; }
+.tt-row { display: grid; gap: 2px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); font-size: 13px; } .tt-row.done { opacity: .55; }
+.tt-row span.lie { color: var(--pink); } .tt-row span.lie::after { content: '  ← lie'; font-family: var(--f-mono); font-size: 11px; }
+.tt-row em { font-style: normal; font-size: 11px; color: var(--volt); }
+.ia.proj .tt-name { font-size: clamp(32px, 4vw, 64px); } .ia.proj .tt-s { font-size: clamp(18px, 2vw, 30px); } .ia.proj .tt-big { font-size: clamp(30px, 4vw, 60px); } .ia.proj .tt-clock { font-size: clamp(32px, 5vw, 72px); }
+body.pmode .tt-all, .ls-ia:fullscreen .tt-all { display: none !important; }
