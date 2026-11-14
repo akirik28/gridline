@@ -28,6 +28,11 @@
     showPane('steps');
     bg && bg.surge(20);
     watchState();
+    // committee roster lives behind the PIN (not in the public source) — fill Groups if empty
+    const gn = $('#g-names');
+    if (!gn.value.trim()) sb.rpc('gridline_get_roster', { p_pin: PIN }).then(({ data }) => {
+      if (data && !gn.value.trim()) { gn.value = data; gn.dispatchEvent(new Event('input')); }
+    });
   }
   $('#gate-form').addEventListener('submit', async e => {
     e.preventDefault();
