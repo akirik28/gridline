@@ -28,7 +28,7 @@ window.GL_STEPS = [
   { d: 1, t: '16:10', m: 15, k: 'en', title: 'Ninja', rules: ['Circle, everyone in a ninja pose.', 'In turn, make ONE move to hit someone’s hand.', 'Lose both hands and you’re out.'] },
   { d: 1, t: '16:25', m: 10, k: 'tb', title: 'Blind Animal Game', rules: ['Your chair whispers you an animal.', 'Eyes closed. Only animal sounds.', 'Find your herd!'] },
   { d: 1, t: '16:35', m: 15, k: 'tb', title: 'Our Golden Rules', rules: ['Write one rule for our committee on a post-it.', 'We group similar ones and vote for 5–7.', 'Everyone signs the poster. It stays on the wall for 3 days.'] },
-  { d: 1, t: '16:50', m: 10, k: 'tb', title: 'Today in one word', rules: ['One word for today. Just one.', 'See you at the Opening Ceremony — 17:45.', 'Tomorrow: we solve Europe’s power problem. ⚡'] },
+  { d: 1, t: '16:50', m: 10, k: 'tb', title: 'Today in one word', rules: ['One word for today. Just one.', 'See you at the Opening Ceremony — 17:45.', 'Tomorrow: we solve Europe’s power problem. ⚡'], sec: 'tpl-teaser' },
   // ---------- DAY 2 ----------
   { d: 2, t: '09:00', m: 10, k: 'en', title: 'Just Dance', rules: ['Stand up. Follow the screen.', 'No one is watching (everyone is).', 'Wake up, Europe.'] },
   { d: 2, t: '09:10', m: 20, k: 'cw', title: 'How we work', rules: ['We write in small groups that change every round.', 'Every idea goes to the Bank, the Hospital or the Graveyard.', 'One round = 45 minutes.'], sec: 'tpl-work' },
