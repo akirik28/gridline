@@ -126,6 +126,58 @@
     return { local: true, stop: () => { stop(); clearInterval(iv); clearInterval(tv); } };
   }
 
+  /* ---------- STAGES: a staged game the chair runs; every screen shows the current stage + its countdown ---------- */
+  function stages(ui, key, ia, proj, o = {}) {
+    const ST = ia.stages, ctl = !!o.control, step = parse(key).step;
+    let k = -1, at = 0, rows = [], mine = getMine(key);
+    ui.n.hidden = true;
+    ui.inp.innerHTML = `<div class="sg"><div class="sg-bar">${ST.map((x, i) => `<i data-i="${i}" title="${esc(x.t)}"></i>`).join('')}</div>
+      <article class="sg-card"><div class="sg-top mono"><span class="sg-no"></span><span class="sg-clock"></span></div><h4 class="sg-t"></h4><ul class="sg-r"></ul><div class="sg-vote"></div></article>
+      ${ctl ? '<div class="dk-nav"><button class="btn ghost sg-prev">← Stage</button><button class="btn solid sg-next">Next stage →</button></div>' : ''}</div>`;
+    const card = $('.sg-card', ui.inp), fmt = ms => { const x = Math.max(0, Math.ceil(ms / 1000)); return Math.floor(x / 60) + ':' + String(x % 60).padStart(2, '0'); };
+    function tally() { const c = ia.teams.map(() => 0); rows.forEach(r => { const i = +r.value; if (c[i] != null) c[i]++; }); return c; }
+    function voteUI() {
+      const x = ST[k], box = $('.sg-vote', card);
+      if (x.vote && !proj && !ctl) {
+        box.innerHTML = `<div class="sg-vb">${ia.teams.map((t, i) => `<button class="btn${String(i) === mine ? ' solid' : ''}" data-i="${i}" style="--c:${COLS[i]}">${esc(t)}</button>`).join('')}</div><p class="mono sg-note">${mine != null ? 'Vote counted ✓ — tap another to change' : 'Not your own team!'}</p>`;
+        box.querySelectorAll('button').forEach(b => b.addEventListener('click', async () => {
+          try { await respond(key, b.dataset.i); mine = b.dataset.i; setMine(key, mine); zap('up'); voteUI(); } catch (e) { flash(ui.msg, 'Could not send — check your connection.', true); }
+        }));
+      } else if ((x.results && (proj || ctl)) || (x.vote && ctl)) {
+        const c = tally(), mx = Math.max(1, ...c);
+        box.innerHTML = `<div class="sg-res">${ia.teams.map((t, i) => `<div class="sg-rr${c[i] === mx && rows.length ? ' top' : ''}" style="--c:${COLS[i]}"><i style="width:${c[i] / mx * 100}%"></i><span>${esc(t)}</span><b class="mono">${c[i]}</b></div>`).join('')}</div><p class="mono sg-note">${rows.length} vote${rows.length === 1 ? '' : 's'}</p>`;
+      } else if (x.results) box.innerHTML = '<p class="sg-note mono">Look at the big screen 👀</p>';
+      else box.innerHTML = '';
+    }
+    function show(pos, dir) {
+      pos = Math.max(0, Math.min(pos, ST.length - 1));
+      const changed = pos !== k; k = pos; const x = ST[k];
+      ui.inp.querySelectorAll('.sg-bar i').forEach((b, i) => { b.classList.toggle('done', i < k); b.classList.toggle('on', i === k); });
+      $('.sg-no', card).textContent = `STAGE ${k + 1} / ${ST.length} · ${x.m} MIN`;
+      $('.sg-t', card).textContent = x.t;
+      $('.sg-r', card).innerHTML = x.r.map(l => `<li>${esc(l)}</li>`).join('');
+      card.style.setProperty('--c', COLS[k % COLS.length]);
+      if (ctl) { $('.sg-prev', ui.inp).disabled = k === 0; $('.sg-next', ui.inp).disabled = k >= ST.length - 1; }
+      voteUI();
+      if (changed) { animate(card, { opacity: [0, 1], x: [(dir || 1) * 50, 0] }, { duration: .45, ease: [.2, .8, .2, 1] }); if (!ctl && k > 0) { zap('up'); if (navigator.vibrate) try { navigator.vibrate(40); } catch (e) {} } }
+    }
+    const tick = () => { const el = $('.sg-clock', card); if (!el || k < 0) return; const left = ST[k].m * 60000 - (Date.now() - at); el.textContent = at ? (left > 0 ? '⏱ ' + fmt(left) : '⏱ time’s up') : ''; el.classList.toggle('late', at && left < 60000); };
+    const stopA = onAlert(a => { const on = a.deck_step === step; at = on && a.deck_at ? new Date(a.deck_at).getTime() : 0; show(on ? a.deck_pos : 0); tick(); });
+    if (k < 0) show(0, 1);
+    if (ctl) {
+      const go = async d => {
+        const want = Math.max(0, Math.min(k + d, ST.length - 1)), c = client(); if (!c) return;
+        const { error } = await c.rpc('gridline_deck_set', { p_pin: o.pin || '', p_step: step, p_pos: want });
+        if (error) return flash(ui.msg, 'Could not move: ' + error.message, true);
+        at = Date.now(); zap(d > 0 ? 'up' : 'down'); show(want, d);
+      };
+      $('.sg-next', ui.inp).addEventListener('click', () => go(1));
+      $('.sg-prev', ui.inp).addEventListener('click', () => go(-1));
+    }
+    const tv = setInterval(tick, 500);
+    return { set(r) { rows = r; const m = r.find(x => x.device === DEV); mine = m ? m.value : null; if (k >= 0) voteUI(); }, stop: () => { stopA(); clearInterval(tv); } };
+  }
+
   function client() {
     if (sb || !window.supabase) return sb;
     sb = window.supabase.createClient(C.supabaseUrl, C.supabaseKey, { auth: { persistSession: false } });
@@ -134,7 +186,7 @@
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_resp' }, () => { clearTimeout(t); t = setTimeout(() => subs.forEach(f => f()), 250); })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_alert' }, p => { if (p.new) { lastAlert = p.new; aSubs.forEach(f => f(p.new)); } })
       .subscribe();
-    const pullAlert = () => sb.from('gridline_alert').select('deck_step, deck_pos, ttl_cur').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { lastAlert = data; aSubs.forEach(f => f(data)); } });
+    const pullAlert = () => sb.from('gridline_alert').select('deck_step, deck_pos, deck_at, ttl_cur').eq('id', 1).maybeSingle().then(({ data }) => { if (data) { lastAlert = data; aSubs.forEach(f => f(data)); } });
     pullAlert(); setInterval(pullAlert, 6000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) pullAlert(); });
     return sb;
@@ -162,7 +214,7 @@
   }
 
   /* ---------- shared shell ---------- */
-  const LABEL = { ttl: 'TWO TRUTHS · ONE LIE', poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
+  const LABEL = { stages: 'STAGE BY STAGE', ttl: 'TWO TRUTHS · ONE LIE', poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
   function shell(el, ia, proj) {
     el.innerHTML = `<div class="ia ia-${ia.type}${proj ? ' proj' : ''}">
       <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${esc(ia.tag || LABEL[ia.type])}</span><span class="ia-n mono" data-n>0 answers</span></div>
@@ -589,7 +641,7 @@
     return { local: true, stop: () => clearInterval(raf) };
   }
 
-  const KINDS = { ttl, poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
+  const KINDS = { stages, ttl, poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
 
   function mountOne(el, step, ia, o) {
     const ui = shell(el, ia, !!o.projector);
@@ -602,7 +654,7 @@
     const iv = setInterval(pull, 6000);
     const vis = () => { if (!document.hidden) pull(); };
     document.addEventListener('visibilitychange', vis);
-    return () => { alive = false; subs.delete(pull); clearInterval(iv); document.removeEventListener('visibilitychange', vis); };
+    return () => { alive = false; subs.delete(pull); clearInterval(iv); document.removeEventListener('visibilitychange', vis); w.stop && w.stop(); };
   }
 
   function mount(el, step, ia, o = {}) {

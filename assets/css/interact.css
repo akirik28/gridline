@@ -243,3 +243,19 @@
 .ia.proj .tt-name { font-size: clamp(32px, 4vw, 64px); } .ia.proj .tt-s { font-size: clamp(18px, 2vw, 30px); } .ia.proj .tt-big { font-size: clamp(30px, 4vw, 60px); } .ia.proj .tt-clock { font-size: clamp(32px, 5vw, 72px); }
 body.pmode .tt-all, .ls-ia:fullscreen .tt-all { display: none !important; }
 .sx-face small { max-width: 86%; text-align: center; line-height: 1.35; color: var(--ink); font-size: 14px; }
+
+/* ---------- stages ---------- */
+.sg-bar { display: grid; grid-auto-flow: column; gap: 6px; margin-bottom: 14px; } .sg-bar i { height: 6px; border-radius: 6px; background: var(--line-2); }
+.sg-bar i.done { background: var(--cyan); opacity: .5; } .sg-bar i.on { background: var(--volt); box-shadow: 0 0 12px var(--volt); }
+.sg-card { padding: 20px; border-radius: 22px; border: 2px solid color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 7%, transparent); }
+.sg-top { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; letter-spacing: .12em; color: var(--c); }
+.sg-clock { font-size: 18px; color: var(--ink); } .sg-clock.late { color: var(--pink); }
+.sg-t { margin: 10px 0 8px; font-size: 30px; font-weight: 900; line-height: 1.05; }
+.sg-r { margin: 0; padding-left: 20px; display: grid; gap: 6px; font-size: 17px; line-height: 1.35; }
+.sg-vb { display: grid; gap: 8px; margin-top: 14px; } .sg-vb .btn { width: 100%; justify-content: flex-start; }
+.sg-note { margin: 10px 0 0; font-size: 12px; color: var(--ink-2); text-align: center; }
+.sg-res { display: grid; gap: 8px; margin-top: 14px; }
+.sg-rr { position: relative; display: flex; justify-content: space-between; padding: 10px 14px; border-radius: 12px; overflow: hidden; border: 1px solid var(--line); font-weight: 700; }
+.sg-rr i { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--c) 35%, transparent); transition: width .6s; } .sg-rr span, .sg-rr b { position: relative; }
+.sg-rr.top { border-color: var(--c); box-shadow: 0 0 22px color-mix(in srgb, var(--c) 40%, transparent); }
+.ia.proj .sg-t { font-size: clamp(36px, 4.5vw, 72px); } .ia.proj .sg-r { font-size: clamp(20px, 2.2vw, 34px); } .ia.proj .sg-clock { font-size: clamp(24px, 3vw, 48px); }
