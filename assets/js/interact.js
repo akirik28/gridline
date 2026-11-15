@@ -214,7 +214,7 @@
   }
 
   /* ---------- shared shell ---------- */
-  const LABEL = { stages: 'STAGE BY STAGE', ttl: 'TWO TRUTHS · ONE LIE', poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
+  const LABEL = { phone: 'WHATSAPP GROUP', stages: 'STAGE BY STAGE', ttl: 'TWO TRUTHS · ONE LIE', poll: 'LIVE POLL', scale: 'WHERE DO YOU STAND?', words: 'WORD CLOUD', quiz: 'TERMS QUIZ', deck: 'QUESTION DECK', secret: 'TOP SECRET', facts: 'WHO SAID IT?', ask: 'QUESTION WALL', speech: 'SPEECH TRAINER', rank: 'RANK IT', mark: 'KEY WORDS' };
   function shell(el, ia, proj) {
     el.innerHTML = `<div class="ia ia-${ia.type}${proj ? ' proj' : ''}">
       <div class="ia-head"><span class="ia-tag mono"><i class="ia-dot"></i>${esc(ia.tag || LABEL[ia.type])}</span><span class="ia-n mono" data-n>0 answers</span></div>
@@ -641,7 +641,68 @@
     return { local: true, stop: () => clearInterval(raf) };
   }
 
-  const KINDS = { stages, ttl, poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
+  /* ---------- PHONE: name + number for the committee WhatsApp group. Only the chair ever sees the numbers ---------- */
+  function phone(ui, key, ia, proj, o = {}) {
+    const ctl = !!o.control, c = client();
+    ui.n.hidden = true;
+    let stopped = false, iv = 0;
+    const cnt = async () => { if (!c) return 0; const { data } = await c.rpc('gridline_phone_count'); return typeof data === 'number' ? data : 0; };
+    if (proj && !ctl) {
+      ui.inp.innerHTML = `<div class="ph-board"><div class="ph-ic">📱</div><p class="ph-big">Your name + your number<br>on your phone</p><p class="ph-n mono"><b>0</b> numbers in</p><p class="ph-lock mono">🔒 only your chair sees them</p></div>`;
+      const tick = async () => { const n = await cnt(); if (stopped) return; const b = $('.ph-n b', ui.inp); if (b.textContent !== String(n)) { b.textContent = n; animate(b, { scale: [1.6, 1] }, { type: 'spring', bounce: .5 }); } };
+      tick(); iv = setInterval(tick, 3000);
+      return { local: true, stop: () => { stopped = true; clearInterval(iv); } };
+    }
+    if (ctl) {
+      ui.inp.innerHTML = `<div class="ph-chair"><p class="ph-n mono"><b>0</b> numbers in</p><div data-private><div class="ph-list"></div>
+        <div class="dk-nav"><button class="btn solid ph-copy">📋 Copy all</button><button class="btn ghost ph-vcf">⬇ Contacts (.vcf)</button></div></div></div>`;
+      let rows = [];
+      const load = async () => {
+        if (!c) return; const { data, error } = await c.rpc('gridline_phone_list', { p_pin: o.pin || '' });
+        if (stopped) return;
+        if (error) { $('.ph-list', ui.inp).innerHTML = `<p class="mono muted">Could not load: ${esc(error.message)}</p>`; return; }
+        rows = data || []; $('.ph-n b', ui.inp).textContent = rows.length;
+        $('.ph-list', ui.inp).innerHTML = rows.length ? rows.map(r => `<div class="ph-row"><span>${esc(r.name)}</span><a class="mono" href="tel:${esc(r.phone)}">${esc(r.phone)}</a></div>`).join('') : '<p class="mono muted">No numbers yet.</p>';
+      };
+      $('.ph-copy', ui.inp).addEventListener('click', async () => {
+        const txt = rows.map(r => `${r.name}: ${r.phone}`).join('\n');
+        try { await navigator.clipboard.writeText(txt); flash(ui.msg, `Copied ${rows.length} numbers ✓`); } catch (e) { flash(ui.msg, 'Copy failed — select the list by hand.', true); }
+      });
+      $('.ph-vcf', ui.inp).addEventListener('click', () => {
+        const v = rows.map(r => `BEGIN:VCARD\r\nVERSION:3.0\r\nFN:${r.name} (ITRE)\r\nN:;${r.name} (ITRE);;;\r\nTEL;TYPE=CELL:${r.phone}\r\nEND:VCARD`).join('\r\n');
+        const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([v], { type: 'text/vcard' })); a.download = 'ITRE-contacts.vcf'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+      });
+      load(); iv = setInterval(load, 4000);
+      return { local: true, stop: () => { stopped = true; clearInterval(iv); } };
+    }
+    // delegate phone
+    let saved = null; try { saved = JSON.parse(localStorage.getItem('gl-phone') || 'null'); } catch (e) {}
+    let me = saved && saved.name; if (!me) try { me = localStorage.getItem('gl-name'); } catch (e) {}
+    ui.inp.innerHTML = `<form class="ph-form"><label class="mono">YOUR NAME</label><select class="ph-name" required><option value="">Who are you?</option></select>
+      <label class="mono">YOUR PHONE (WhatsApp)</label><input class="ph-tel" type="tel" inputmode="tel" autocomplete="tel" placeholder="05xx xxx xx xx" maxlength="20" required>
+      <button class="btn solid big ph-send" type="submit">Send to my chair 📱</button><p class="ph-lock mono">🔒 Only your chair sees this — for the committee WhatsApp group.</p></form>`;
+    const sel = $('.ph-name', ui.inp), tel = $('.ph-tel', ui.inp), btn = $('.ph-send', ui.inp);
+    if (saved && saved.phone) tel.value = saved.phone;
+    (async () => { if (!c) return; const { data } = await c.rpc('gridline_roster_names'); (data || []).forEach(n => { const op = document.createElement('option'); op.value = op.textContent = n; if (n === me) op.selected = true; sel.append(op); }); })();
+    const done = () => { btn.textContent = 'Saved ✓ — tap to change'; btn.classList.remove('solid'); btn.classList.add('ghost'); };
+    if (saved && saved.phone) done();
+    $('.ph-form', ui.inp).addEventListener('submit', async e => {
+      e.preventDefault();
+      const name = sel.value, num = tel.value.replace(/[^0-9+]/g, '');
+      if (!name) return flash(ui.msg, 'Pick your name first.', true);
+      if (num.length < 10 || num.length > 16) return flash(ui.msg, 'That number looks wrong — e.g. 0532 123 45 67', true);
+      if (!c) return;
+      btn.disabled = true;
+      const { error } = await c.rpc('gridline_phone_submit', { p_device: DEV, p_name: name, p_phone: num });
+      btn.disabled = false;
+      if (error) return flash(ui.msg, 'Could not send — check your connection.', true);
+      try { localStorage.setItem('gl-phone', JSON.stringify({ name, phone: tel.value })); localStorage.setItem('gl-name', name); } catch (e) {}
+      zap('up'); done(); flash(ui.msg, 'Got it! Your chair will add you to the group 💬');
+    });
+    return { local: true };
+  }
+
+  const KINDS = { phone, stages, ttl, poll, scale, words, quiz, deck, secret, facts, ask, speech, rank, mark };
 
   function mountOne(el, step, ia, o) {
     const ui = shell(el, ia, !!o.projector);
