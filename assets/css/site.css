@@ -528,7 +528,7 @@ button.dr-step:hover { background: rgba(61,242,255,.06); }
   .st-art { position: relative; right: auto; top: auto; width: 100%; max-width: 170px; aspect-ratio: 6/5; margin: 10px auto -4px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .term, .eu-node, .stat, .role, .st-kind, .st-kind i { animation: none !important; }
+  html:not(.board) :is(.term, .eu-node, .stat, .role, .st-kind, .st-kind i) { animation: none !important; }
 }
 
 /* long single words in step titles must fit a 375px phone */

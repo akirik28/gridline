@@ -1,6 +1,6 @@
 /* Gridline FX — animated power-grid background + interaction helpers (shared). */
 (function () {
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduce = !window.GL_BOARD && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine = matchMedia('(pointer: fine)').matches;
   const FX = (window.FX = {});
 

@@ -19,9 +19,14 @@
   html.board .st-content::before, html.board #st-timer { display: none !important; }
   /* page 1: title + rules, big */
   html.board #step.pg0 .bd-right { display: none; }
-  html.board .st-title { font-size: 120px; max-width: min(16ch, 74%); }
+  html.board .st-art { position: relative; float: right; right: auto; top: auto; width: 330px; margin: 10px 0 24px 48px; }
+  html.board .st-title, html.board .st-rules { position: relative; z-index: 1; }
+  html.board .bd-left::after { content: ''; display: block; clear: both; }
+  html.board .st-title { font-size: 120px; max-width: 16ch; }
+  html.board .st-meta { font-size: 18px; } html.board .st-kind { font-size: 18px; padding: 10px 18px 10px 14px; } html.board .st-kind i { font-size: 24px; }
   html.board .st-rules { max-width: none; gap: 22px; margin-top: 48px; }
-  html.board .st-rules li { font-size: 30px; padding: 22px 28px 22px 22px; }
+  html.board .st-rules li { font-size: 34px; padding: 22px 28px 22px 22px; grid-template-columns: 56px 1fr; gap: 22px; }
+  html.board .st-rules li::before { width: 56px; height: 56px; font-size: 22px; border-radius: 16px; }
   /* page 2: small title on top, then the content / game */
   html.board #step.pg1 .st-rules, html.board #step.pg1 .st-art, html.board #step.pg1 .st-meta { display: none; }
   html.board #step.pg1 .st-title { font-size: 54px; max-width: none; margin-top: 10px; }
@@ -51,21 +56,21 @@
   .bd-tl { margin-top: -2vh; }
   .bd-timer.warn .bd-t { color: var(--volt); } .bd-timer.done .bd-t { color: var(--pink); animation: bdBlink 1s steps(2) infinite; }
   @keyframes bdBlink { 50% { opacity: .3; } }
-  .bd-groups { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 2vw; width: 92vw; max-width: 1700px; }
-  .bd-col { padding: 2.4vh 1.6vw; border-radius: 26px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 8%, #0b1020); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 25%, transparent); }
-  .bd-col h3 { margin: 0; display: flex; align-items: center; gap: 14px; font-size: clamp(24px, 2.6vw, 44px); }
+  .bd-groups { display: grid; grid-template-columns: repeat(var(--n, 4), minmax(0, 1fr)); gap: 32px; width: 1600px; }
+  .bd-col { padding: 26px 24px; border-radius: 26px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 8%, #0b1020); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 25%, transparent); }
+  .bd-col h3 { margin: 0; display: flex; align-items: center; gap: 14px; font-size: 44px; white-space: nowrap; }
   .bd-col h3 b { width: 1.6em; height: 1.6em; border-radius: 14px; display: grid; place-items: center; background: var(--c); color: #04060d; }
-  .bd-col p { margin: 8px 0 16px; color: var(--ink-2); font-size: clamp(14px, 1.3vw, 20px); }
-  .bd-card { margin-top: 10px; padding: 1.4vh 1vw; border-radius: 16px; background: rgba(255,255,255,.06); font-weight: 700; font-size: clamp(18px, 1.9vw, 32px); }
+  .bd-col p { margin: 10px 0 18px; color: var(--ink-2); font-size: 22px; line-height: 1.25; }
+  .bd-card { margin-top: 12px; padding: 16px 18px; border-radius: 16px; background: rgba(255,255,255,.06); font-weight: 700; font-size: 34px; line-height: 1.15; }
   .bd-qr { display: grid; grid-template-columns: auto auto; gap: 5vw; align-items: center; }
   .bd-qr .q { width: min(60vh, 42vw); aspect-ratio: 1; padding: 4%; border-radius: 32px; background: #fff; box-shadow: 0 0 0 3px var(--cyan), 0 0 90px rgba(61,242,255,.45); }
   .bd-qr .q svg { width: 100%; height: 100%; display: block; }
   .bd-qr h2 { margin: 12px 0 18px; font-size: clamp(48px, 7vw, 130px); line-height: .9; font-weight: 900; }
   .bd-qr .u { font: 500 clamp(20px, 2.4vw, 40px) var(--f-mono); padding: 14px 22px; border-radius: 18px; border: 1px solid var(--line-2); display: inline-block; }
   .bd-blank { text-align: center; }
-  .bd-blank b { display: block; font-size: clamp(70px, 13vw, 240px); font-weight: 900; letter-spacing: .02em; background: linear-gradient(100deg, var(--cyan), var(--volt), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .bd-blank b { display: block; font-size: 240px; font-weight: 900; letter-spacing: .02em; background: linear-gradient(100deg, var(--cyan), var(--volt), var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .bd-energy { position: fixed; z-index: 9100; left: 0; right: 0; bottom: 3vh; margin: 0 auto; width: fit-content; max-width: min(92vw, 1500px); box-sizing: border-box; display: flex; align-items: center; gap: 22px; padding: 2vh 3vw; border-radius: 999px; border: 3px solid transparent;
-    background: linear-gradient(#0b1020, #0b1020) padding-box, linear-gradient(120deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff) border-box; box-shadow: 0 0 60px rgba(77,255,166,.35); font-size: clamp(18px, 2.2vw, 40px); font-weight: 800; line-height: 1.15; }
+    background: linear-gradient(#0b1020, #0b1020) padding-box, linear-gradient(120deg, #ff3d7f, #ff9a3d, #ffe14d, #4dffa6, #3df2ff) border-box; box-shadow: 0 0 60px rgba(77,255,166,.35); font-size: 4.2vh; font-weight: 800; line-height: 1.15; }
   .bd-energy b { min-width: 0; }
   .bd-energy span { white-space: nowrap; }
   .bd-energy[hidden] { display: none; }
@@ -91,6 +96,7 @@
   step.prepend(left); step.append(right);
   const PAD = () => ({ x: Math.round(innerWidth * .06), top: Math.round(innerHeight * .07), bot: Math.round(innerHeight * (document.documentElement.classList.contains('bd-en') ? .18 : .07)) });
   let page = 0, pageStep = -1;
+  const BASE = 1600, MAXS = 3.2;
   function fitStep() {
     if (!ov.hidden) return;
     const cE = $('#st-content'), iE = $('#st-ia');
@@ -106,17 +112,13 @@
     let best = null;
     for (const [both, multi] of layouts) {
       right.classList.toggle('both', both); iE && iE.classList.toggle('multi', multi);
-      // pick the layout width that lets the text be biggest
-      let w = W, sc = 0, h = 0;
-      for (const k of [1, 1.12, 1.25, 1.4, 1.6, 1.8, 2]) {
-        const ww = W * k; step.style.width = ww + 'px';
-        const hh = step.offsetHeight, s2 = Math.min(1, H / hh, W / ww);
-        if (s2 > sc + .005) { sc = s2; w = ww; h = hh; }
-        if (H / hh >= 1) break;
+      // lay the page out at a few canvas widths and keep the one that can be drawn biggest
+      for (const k of [.62, .72, .82, .92, 1, 1.12, 1.25, 1.4, 1.6, 1.85, 2.1]) {
+        const ww = Math.round(BASE * k); step.style.width = ww + 'px';
+        const realW = Math.max(ww, step.scrollWidth, left.scrollWidth + left.offsetLeft, right.scrollWidth + right.offsetLeft);
+        const hh = step.offsetHeight, sc = Math.min(MAXS, W / realW, H / hh);
+        if (!best || sc > best.sc + .01) best = { both, multi, w: ww, sc, h: hh };
       }
-      step.style.width = w + 'px';
-      sc = Math.min(sc, W / Math.max(w, step.scrollWidth, left.scrollWidth + left.offsetLeft, right.scrollWidth + right.offsetLeft));
-      if (!best || sc > best.sc + .01) best = { both, multi, w, sc, h };
     }
     right.classList.toggle('both', best.both); iE && iE.classList.toggle('multi', best.multi);
     step.style.width = best.w + 'px';
@@ -127,7 +129,7 @@
     const el = ov.firstElementChild; if (ov.hidden || !el) return;
     el.style.transform = 'none';
     const p = PAD(), W = innerWidth - 2 * p.x, H = innerHeight - p.top - p.bot;
-    const sc = Math.min(1, W / el.offsetWidth, H / el.offsetHeight);
+    const sc = Math.min(MAXS, W / el.offsetWidth, H / el.offsetHeight);
     el.style.transformOrigin = '50% 50%';
     el.style.transform = `translateY(${Math.round((p.top - p.bot) / 2)}px) scale(${sc})`;
   }
@@ -135,7 +137,7 @@
   const fit = () => { clearTimeout(fitT); fitT = setTimeout(() => { fitStep(); fitOv(); }, 60); };
   new MutationObserver(fit).observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'class'] });
   addEventListener('resize', fit);
-  setInterval(() => { fitStep(); fitOv(); }, 1500);
+  setInterval(() => { fitStep(); fitOv(); }, 3000);
   window.GL_boardFit = () => { fitStep(); fitOv(); };
 
   /* ---------- modes ---------- */
@@ -198,10 +200,10 @@
     animation: dbShift 4s linear infinite, dbBob 2.4s ease-in-out infinite; filter: drop-shadow(0 0 40px rgba(255,225,77,.35)); }
   @keyframes dbShift { to { background-position: 200% 0; } }
   @keyframes dbBob { 50% { transform: translateY(-2vh) rotate(-1.5deg); } }
-  .bd-db .k { font: 500 clamp(16px, 2.2vw, 34px) var(--f-mono); letter-spacing: .35em; color: var(--cyan); text-transform: uppercase; }
-  .bd-db .q { margin: 3vh auto 0; max-width: 24ch; font-size: clamp(26px, 4vw, 64px); font-weight: 800; line-height: 1.1; }
-  .bd-db .n { margin-top: 3vh; display: inline-block; padding: 1.4vh 2.6vw; border-radius: 999px; font: 600 clamp(18px, 2.4vw, 40px) var(--f-mono); color: #04060d; background: linear-gradient(90deg, #4dffa6, #3df2ff); box-shadow: 0 0 40px rgba(77,255,166,.45); }
-  .bd-db .fl { position: absolute; font-size: clamp(36px, 6vw, 110px); animation: dbFloat linear infinite; opacity: .5; z-index: 0; }
+  .bd-db .k { font: 500 3vh var(--f-mono); letter-spacing: .35em; color: var(--cyan); text-transform: uppercase; }
+  .bd-db .q { margin: 3vh auto 0; max-width: 24ch; font-size: 7vh; font-weight: 800; line-height: 1.1; }
+  .bd-db .n { margin-top: 3vh; display: inline-block; padding: 1.4vh 2.6vw; border-radius: 999px; font: 600 3.6vh var(--f-mono); color: #04060d; background: linear-gradient(90deg, #4dffa6, #3df2ff); box-shadow: 0 0 40px rgba(77,255,166,.45); }
+  .bd-db .fl { position: absolute; font-size: 10vh; animation: dbFloat linear infinite; opacity: .5; z-index: 0; }
   .bd-db .n:empty { display: none; }
   @keyframes dbFloat { from { transform: translateY(110vh) rotate(0); } to { transform: translateY(-20vh) rotate(360deg); } }`;
   document.head.append(dbCss);
