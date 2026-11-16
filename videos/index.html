@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Videos · ITRE</title>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<style>
+:root { --bg:#04060d; --ink:#eaf0ff; --ink-2:#b6c0e3; --cyan:#3df2ff; --volt:#ffe14d; --pink:#ff3d7f; --green:#4dffa6; }
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Archivo', system-ui, sans-serif; padding: 4vh 4vw 6vh; }
+body::before { content: ''; position: fixed; inset: 0; z-index: -1; background-image: linear-gradient(rgba(110,140,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(110,140,255,.07) 1px, transparent 1px); background-size: 60px 60px; }
+.k { font: 500 clamp(13px, 1.4vw, 20px) 'DM Mono', monospace; letter-spacing: .25em; color: var(--cyan); }
+h1 { margin: 1vh 0 4vh; font-size: clamp(40px, 6vw, 96px); font-weight: 900; letter-spacing: -.02em; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(560px, 100%), 1fr)); gap: 3vw; }
+.v { border: 2px solid var(--c); border-radius: 26px; padding: 16px; background: color-mix(in srgb, var(--c) 7%, transparent); box-shadow: 0 0 40px color-mix(in srgb, var(--c) 22%, transparent); }
+.v video { width: 100%; border-radius: 16px; display: block; background: #000; aspect-ratio: 16/9; }
+.v h2 { margin: 14px 6px 4px; font-size: clamp(22px, 2.2vw, 36px); }
+.v p { margin: 0 6px 6px; color: var(--ink-2); font-size: clamp(14px, 1.3vw, 20px); }
+.v .t { font: 500 13px 'DM Mono', monospace; color: var(--c); letter-spacing: .15em; margin: 0 6px; }
+</style>
+</head>
+<body>
+<div class="k">ITRE · EYP MERSIN 2026</div>
+<h1>Videos 🎬</h1>
+<div class="grid">
+  <div class="v" style="--c:#4dffa6"><video controls playsinline preload="metadata" poster="../video/water-energy-poster.jpg?v=1" src="../video/water-energy.mp4?v=1"></video><h2>Why do data centres need so much energy &amp; water?</h2><p>Mason &amp; Freya explain heat, cooling, PUE and water.</p><div class="t">≈ 2 MIN</div></div>
+  <div class="v" style="--c:#ffe14d"><video controls playsinline preload="metadata" poster="../video/eu-basics-poster.jpg?v=1" src="../video/eu-basics.mp4?v=1"></video><h2>EU in 80 seconds: who does what?</h2><p>Commission, Parliament, Council, European Council, Court.</p><div class="t">≈ 1.5 MIN</div></div>
+  <div class="v" style="--c:#3df2ff"><video controls playsinline preload="metadata" poster="../video/itre-to-poster.jpg?v=3" src="../video/itre-to.mp4?v=3"></video><h2>The topic: AI, data centres &amp; the grid</h2><p>The full topic overview.</p><div class="t">≈ 8 MIN</div></div>
+  <div class="v" style="--c:#ff3d7f"><video controls playsinline preload="metadata" poster="../video/blackout-poster.jpg?v=1" src="../video/blackout.mp4?v=2"></video><h2>The Lumen Valley Blackout</h2><p>Day 1 conflict game story.</p><div class="t">≈ 3.5 MIN</div></div>
+</div>
+</body>
+</html>

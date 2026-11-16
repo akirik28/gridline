@@ -65,7 +65,7 @@ body::before { content: ''; position: fixed; inset: -50%; background-image: line
 .big { font-size: clamp(80px, 13vw, 260px); font-weight: 900; line-height: .9; color: var(--c); text-shadow: 0 0 60px var(--c); }
 @media (max-aspect-ratio: 4/3) { .flow { flex-wrap: wrap; } .flow .card { flex: 1 1 40%; } .flow .arrow { display: none; } .grid4 { grid-template-columns: repeat(2, 1fr); } }
 [data-b] { visibility: hidden; }
-[data-b].shown { visibility: visible; }
+.slide.on [data-b].shown { visibility: visible; }
 </style>
 </head>
 <body>
