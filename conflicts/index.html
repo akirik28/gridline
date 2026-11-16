@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>4 Key Conflicts · ITRE</title>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<style>
+:root { --sans:'Archivo',system-ui,sans-serif; --mono:'DM Mono',ui-monospace,monospace; }
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #2a2f3d; font-family: var(--sans); color: #0b0f1a; }
+.bar { position: sticky; top: 0; z-index: 5; display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap; padding: 12px 16px; background: #04060d; color: #eaf0ff; font: 500 14px var(--mono); }
+.bar button { font: 700 16px var(--sans); padding: 10px 18px; border-radius: 12px; border: 0; background: #3df2ff; color: #04060d; cursor: pointer; }
+.bar span { opacity: .7; }
+.pages { display: grid; gap: 28px; justify-content: center; padding: 28px 16px 60px; }
+.page { width: 210mm; height: 297mm; max-width: calc(100vw - 32px); background: #fff; position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 40px rgba(0,0,0,.4); }
+.head { border-top: 14mm solid var(--c); padding: 8mm 12mm 6mm; border-bottom: 1.2mm dashed #c9cfdc; }
+.top { display: flex; align-items: center; gap: 7mm; }
+.letter { flex: none; width: 30mm; height: 30mm; border-radius: 7mm; background: var(--c); display: grid; place-items: center; font: 900 22mm/1 var(--sans); color: #04060d; }
+.k { font: 500 3.6mm var(--mono); letter-spacing: .25em; color: #5a6380; }
+h1 { margin: 1.5mm 0 0; font-size: 13mm; line-height: 1; font-weight: 900; letter-spacing: -.02em; }
+h1 i { font-style: normal; color: #8a92aa; font-weight: 700; }
+.beam { display: flex; align-items: center; gap: 4mm; margin-top: 6mm; font: 700 5mm var(--sans); }
+.beam span { flex: 1; padding: 3mm 4mm; border-radius: 3mm; background: color-mix(in srgb, var(--c) 22%, #fff); border: .6mm solid var(--c); text-align: center; }
+.beam b { font: 900 6mm var(--sans); color: #8a92aa; }
+.ask { margin: 5mm 0 0; font: 600 5mm var(--mono); color: #26304a; }
+.zone { flex: 1; position: relative; display: grid; place-items: center; }
+.zone p { margin: 0; text-align: center; font: 800 7mm var(--sans); color: #d5dae6; }
+.zone p small { display: block; margin-top: 3mm; font: 500 4mm var(--mono); letter-spacing: .15em; }
+.foot { position: absolute; left: 12mm; right: 12mm; bottom: 6mm; display: flex; justify-content: space-between; font: 500 3.2mm var(--mono); color: #9aa2b8; }
+@media print {
+  @page { size: A4 portrait; margin: 0; }
+  html, body { background: #fff; }
+  .bar { display: none; }
+  .pages { display: block; padding: 0; }
+  .page { box-shadow: none; max-width: none; page-break-after: always; break-after: page; }
+  .page:last-child { page-break-after: auto; break-after: auto; }
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+</style>
+</head>
+<body>
+<div class="bar"><button onclick="print()">🖨 Print all 4 (A4)</button><span>Sort the problems · stick the post-its under each conflict</span></div>
+<div class="pages" id="pages"></div>
+<script>
+const C = [
+  ['A', '#3df2ff', 'Competitiveness <i>vs</i> climate', 'More AI in Europe', 'Climate neutral by 2050', 'Should growth wait for clean energy — or the other way round?'],
+  ['B', '#ffe14d', 'The grid <i>&amp;</i> local people', 'Jobs, tax, investment', 'Power, water, land, noise', 'Who should be first in the queue for the grid?'],
+  ['C', '#ff3d7f', 'Transparency <i>vs</i> trade secrets', 'Public right to know', 'Company secrets', 'What exactly should be public, and to whom?'],
+  ['D', '#4dffa6', 'Voluntary <i>vs</i> binding', 'Industry pledges', 'Hard EU law', 'Carrot, stick — or both?'],
+];
+const only = (new URLSearchParams(location.search).get('c') || '').toUpperCase();
+document.getElementById('pages').innerHTML = C.filter(c => !only || c[0] === only).map(([l, col, t, a, b, q]) => `
+  <section class="page" style="--c:${col}">
+    <div class="head">
+      <div class="top"><div class="letter">${l}</div><div><div class="k">ITRE · KEY CONFLICT ${l}</div><h1>${t}</h1></div></div>
+      <div class="beam"><span>${a}</span><b>⚖</b><span>${b}</span></div>
+      <p class="ask">→ ${q}</p>
+    </div>
+    <div class="zone"><p>Stick the problems here<small>DUPLICATES → STACK THEM</small></p></div>
+    <div class="foot"><span>EYP Mersin 2026 · ITRE</span><span>Conflict ${l} / 4</span></div>
+  </section>`).join('');
+</script>
+</body>
+</html>
