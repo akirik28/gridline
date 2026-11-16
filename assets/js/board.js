@@ -223,7 +223,8 @@
   .bd-call { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
   .bd-call .bd-cf-h { flex-direction: column; align-items: flex-start; gap: 16px; padding: 22px 24px 20px; min-height: 330px; }
   .bd-call .bd-cf-l { width: 96px; height: 96px; font-size: 70px; border-radius: 24px; }
-  .bd-call h2 { font-size: 44px; }
+  .bd-call h2 { font-size: 36px; }
+  .bd-call .bd-cf-h > div { min-width: 0; width: 100%; }
   .bd-call .bd-cf-q { font-size: 20px; margin-top: 10px; }
   .bd-call .bd-cf-z { font-size: 26px; }`;
   document.head.append(cCss);
