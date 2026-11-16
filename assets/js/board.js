@@ -177,7 +177,7 @@
     eu: ['video/eu-basics.mp4?v=1', 'video/eu-basics-poster.jpg?v=1'],
     to: ['video/itre-to.mp4?v=3', 'video/itre-to-poster.jpg?v=3'],
     blackout: ['video/blackout.mp4?v=3', 'video/blackout-poster.jpg?v=1'],
-    lego: ['video/lego-method.mp4?v=1', 'video/lego-method-poster.jpg?v=1'],
+    lego: ['video/lego-method.mp4?v=2', 'video/lego-method-poster.jpg?v=1'],
     because: ['video/because-clauses.mp4?v=1', 'video/because-clauses-poster.jpg?v=1'],
   };
   const vCss = document.createElement('style');

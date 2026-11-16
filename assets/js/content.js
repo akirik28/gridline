@@ -14,11 +14,11 @@ window.GL_TERMS = [
   { t: 'Energy Efficiency Directive', ic: '📜', d: 'EU law (recast 2023) to cut energy use. It made big data centres report their energy and water data.', ex: 'A 1 MW data centre in Spain must report its PUE and water use every year.' }
 ];
 
-window.GL_VERBS = ['Calls upon', 'Encourages', 'Urges', 'Requests', 'Invites', 'Supports', 'Recommends', 'Instructs', 'Proposes', 'Welcomes', 'Emphasises', 'Further encourages', 'Designates', 'Establishes', 'Asks', 'Strongly urges'];
+window.GL_VERBS = ['Calling upon', 'Encouraging', 'Urging', 'Requesting', 'Inviting', 'Supporting', 'Recommending', 'Advising', 'Suggesting', 'Welcoming', 'Emphasising', 'Further encouraging', 'Designating', 'Establishing', 'Asking', 'Strongly urging'];
 
 window.GL_LEGO = {
   who: ['the European Commission', 'Member States', 'national grid operators', 'the European Parliament', 'data-centre operators', 'local authorities'],
-  verb: ['Calls upon', 'Encourages', 'Urges', 'Requests', 'Invites', 'Asks'],
+  verb: ['Calling upon', 'Encouraging', 'Urging', 'Requesting', 'Inviting', 'Asking'],
   what: ['to publish energy and water data', 'to prioritise grid connections', 'to set a maximum PUE', 'to reuse waste heat', 'to sign renewable PPAs', 'to consult local residents'],
   how: ['through an EU-wide public database', 'by 2030', 'via EU funding programmes', 'with yearly independent audits', 'through binding legislation', 'in planning permits'],
   why: ['in order to protect grid stability', 'in order to meet the 2050 climate goal', 'in order to build public trust', 'in order to keep AI in Europe competitive', 'in order to lower household bills', 'in order to save water']
