@@ -170,6 +170,35 @@
     if (window.qrcode) { const q = qrcode(0, 'M'); q.addData(JOIN); q.make(); const n = q.getModuleCount(); let r = ''; for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (q.isDark(y, x)) r += `<rect x="${x}" y="${y}" width="1.02" height="1.02"/>`; svg = `<svg viewBox="0 0 ${n} ${n}" shape-rendering="crispEdges"><g fill="#04060d">${r}</g></svg>`; }
     ov.innerHTML = `<div class="bd-qr"><div class="q">${svg}</div><div><div class="bd-k" style="text-align:left">ITRE · Gridline</div><h2>Scan to<br>plug in</h2><div class="u">akirik28.github.io/gridline</div></div></div>`;
   }
+  /* VIDEO: the chair picks a video and plays / pauses / restarts it from the console */
+  const VIDS = {
+    water: ['video/water-energy.mp4?v=1', 'video/water-energy-poster.jpg?v=1'],
+    eu: ['video/eu-basics.mp4?v=1', 'video/eu-basics-poster.jpg?v=1'],
+    to: ['video/itre-to.mp4?v=3', 'video/itre-to-poster.jpg?v=3'],
+    blackout: ['video/blackout.mp4?v=2', 'video/blackout-poster.jpg?v=1'],
+  };
+  const vCss = document.createElement('style');
+  vCss.textContent = `.bd-vbox { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; }
+  .bd-vbox video { width: 100%; height: 100%; border-radius: 18px; background: #000; box-shadow: 0 0 80px rgba(61,242,255,.25); }
+  .bd-vplay { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 28px 56px; border-radius: 999px; border: 0; background: var(--cyan, #3df2ff); color: #04060d; font: 900 54px var(--f-sans, sans-serif); cursor: pointer; box-shadow: 0 0 60px rgba(61,242,255,.6); }
+  .bd-vplay[hidden] { display: none; }`;
+  document.head.append(vCss);
+  function video() {
+    const k = VIDS[data.v] ? data.v : 'water', it = VIDS[k];
+    let v = ov.querySelector('video.bd-v');
+    if (!v || v.dataset.k !== k) {
+      ov.innerHTML = `<div class="bd-vbox"><video class="bd-v" data-k="${k}" playsinline controls preload="auto" poster="${it[1]}" src="${it[0]}"></video><button class="bd-vplay" hidden>▶ Tap to play</button></div>`;
+      v = ov.querySelector('video.bd-v');
+      const b = ov.querySelector('.bd-vplay');
+      b.addEventListener('click', () => { v.play().then(() => { b.hidden = true; }).catch(() => {}); });
+      v.addEventListener('play', () => { b.hidden = true; });
+    }
+    const b = ov.querySelector('.bd-vplay');
+    const go = () => v.play().then(() => { b.hidden = true; }).catch(() => { b.hidden = false; });
+    if (data.cmd === 'pause') v.pause();
+    else if (data.cmd === 'restart') { v.currentTime = 0; go(); }
+    else if (data.cmd === 'play') go();
+  }
   function blank() { ov.innerHTML = '<div class="bd-blank"><div class="bd-k">ITRE · EYP Mersin 2026</div><b>GRIDLINE</b></div>'; }
   function apply(row) {
     if (!row) return;
@@ -177,11 +206,14 @@
     if (same) return;
     mode = row.mode; data = row.data || {};
     clearInterval(tInt); tInt = null;
+    if (mode !== 'video') { const ov_v = ov.querySelector('video.bd-v'); if (ov_v) { ov_v.pause(); ov.innerHTML = ''; } }
     if (mode === 'step') { page = +data.page || 0; pageStep = typeof data.step === 'number' ? data.step : -1; ov.hidden = true; ov.innerHTML = ''; setTimeout(fitStep, 50); return; }
     ov.hidden = false;
-    ({ timer, groups, qr, blank }[mode] || blank)();
+    const wasVid = !!ov.querySelector('video.bd-v') && mode === 'video';
+    if (mode !== 'video') ov.innerHTML = '';
+    ({ timer, groups, qr, blank, video }[mode] || blank)();
     requestAnimationFrame(fitOv); setTimeout(fitOv, 50);
-    if (mode !== 'timer') animate(ov, { opacity: [0, 1] }, { duration: .4 });
+    if (mode !== 'timer' && !wasVid) animate(ov, { opacity: [0, 1] }, { duration: .4 });
   }
   window.GL_boardApply = apply; // handy for testing in the console
   async function pull() { const { data: row } = await sb.from('gridline_board').select('mode, data').eq('id', 1).maybeSingle(); apply(row); }

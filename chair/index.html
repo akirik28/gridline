@@ -9,7 +9,7 @@
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="../assets/css/fonts.css">
 <link rel="stylesheet" href="../assets/css/base.css?v=2">
-<link rel="stylesheet" href="chair.css?v=16">
+<link rel="stylesheet" href="chair.css?v=17">
 <link rel="stylesheet" href="../assets/css/interact.css?v=9">
 </head>
 <body>
@@ -45,7 +45,11 @@
     <div class="r-board">
       <div class="rb-h mono">📺 On the board <a href="../board/" target="_blank" rel="noopener">open link ↗</a></div>
       <div class="rb-seg" id="rb-seg">
-        <button data-bm="step" class="on">▶️ Steps</button><button data-bm="timer">⏱ Timer</button><button data-bm="groups">🃏 Groups</button><button data-bm="qr">📱 QR</button><button data-bm="blank">⬛ Blank</button>
+        <button data-bm="step" class="on">▶️ Steps</button><button data-bm="timer">⏱ Timer</button><button data-bm="groups">🃏 Groups</button><button data-bm="qr">📱 QR</button><button data-bm="blank">⬛ Blank</button><button data-bm="video">🎬 Video</button>
+      </div>
+      <div class="rb-vid" id="rb-vid" hidden>
+        <div class="rb-vlist"><button data-v="water">💧 Energy &amp; water</button><button data-v="eu">🇪🇺 EU in 80 s</button><button data-v="to">⚡ Topic (8 min)</button><button data-v="blackout">🌃 Lumen Valley</button></div>
+        <div class="rb-vctl"><button data-c="play">▶</button><button data-c="pause">⏸</button><button data-c="restart">⟲</button></div>
       </div>
     </div>
     <div class="r-energy mono" id="r-energy" hidden>🔋 Meter open · <b>0</b></div>
@@ -254,6 +258,6 @@
 <script src="../assets/js/interact.js?v=12"></script>
 <script src="plan.js?v=2"></script>
 <script src="energy.js?v=5"></script>
-<script src="chair.js?v=13"></script>
+<script src="chair.js?v=14"></script>
 </body>
 </html>

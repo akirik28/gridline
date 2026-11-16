@@ -483,11 +483,14 @@
   const pin = () => { try { return sessionStorage.getItem('glc-pin') || ''; } catch (e) { return ''; } };
   let mode = 'step';
   const paint = () => document.querySelectorAll('#rb-seg button').forEach(b => b.classList.toggle('on', b.dataset.bm === mode));
-  const payload = m => m === 'step' ? { page: 0, step: window.GL_curStep } : m === 'timer' ? (window.GL_timerData ? GL_timerData() : {}) : m === 'groups' ? { groups: window.GL_lastGroups || [] } : {};
+  let vid = { v: 'water', cmd: 'pause', n: 0 };
+  const payload = m => m === 'video' ? vid : m === 'step' ? { page: 0, step: window.GL_curStep } : m === 'timer' ? (window.GL_timerData ? GL_timerData() : {}) : m === 'groups' ? { groups: window.GL_lastGroups || [] } : {};
   async function set(m) {
     const { error } = await sb.rpc('gridline_set_board', { p_pin: pin(), p_mode: m, p_data: payload(m) });
     if (error) { alert('Could not change the board: ' + error.message); return; }
     mode = m; paint();
+    const vp = document.getElementById('rb-vid'); if (vp) vp.hidden = m !== 'video';
+    document.querySelectorAll('#rb-vid [data-v]').forEach(b => b.classList.toggle('on', m === 'video' && b.dataset.v === vid.v));
   }
   // called by the timer / groups panes: only pushes if that thing is what the board shows
   window.GL_boardSync = m => { if (mode === m) set(m); };
@@ -535,6 +538,9 @@
   };
   $('#ls-bpage').addEventListener('click', () => { GL_boardPage(curPage() === 1 ? 0 : 1); window.FX && FX.zap && FX.zap('up'); });
   document.querySelectorAll('#rb-seg button').forEach(b => b.addEventListener('click', () => { set(b.dataset.bm); window.FX && FX.zap && FX.zap('up'); }));
+  // 🎬 video on the board: pick one (it starts playing), then ▶ ⏸ ⟲
+  document.querySelectorAll('#rb-vid [data-v]').forEach(b => b.addEventListener('click', () => { vid = { v: b.dataset.v, cmd: 'play', n: Date.now() }; set('video'); }));
+  document.querySelectorAll('#rb-vid [data-c]').forEach(b => b.addEventListener('click', () => { vid = { ...vid, cmd: b.dataset.c, n: Date.now() }; set('video'); }));
   const take = d => { if (!d) return; mode = d.mode; tStep = d.mode === 'timer' && d.data && typeof d.data.step === 'number' ? d.data.step : -1; bpage = +(d.data && d.data.page) || 0; bstep = d.data && typeof d.data.step === 'number' ? d.data.step : -1; paint(); window.GL_paintBpage && GL_paintBpage(); window.GL_paintStart && GL_paintStart(); };
   sb.from('gridline_board').select('mode, data').eq('id', 1).maybeSingle().then(({ data }) => take(data));
   sb.channel('chair-board').on('postgres_changes', { event: '*', schema: 'public', table: 'gridline_board' }, p => take(p.new)).subscribe();
