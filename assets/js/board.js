@@ -200,6 +200,40 @@
     else if (data.cmd === 'restart') { v.currentTime = 0; go(); }
     else if (data.cmd === 'play') go();
   }
+  /* CONFLICT: one of the 4 key conflicts (or all 4) as a post-it wall */
+  const CFS = {
+    A: ['#3df2ff', 'Competitiveness <i>vs</i> climate', 'More AI in Europe', 'Climate neutral by 2050', 'Should growth wait for clean energy — or the other way round?'],
+    B: ['#ffe14d', 'The grid <i>&amp;</i> local people', 'Jobs, tax, investment', 'Power, water, land, noise', 'Who should be first in the queue for the grid?'],
+    C: ['#ff3d7f', 'Transparency <i>vs</i> trade secrets', 'Public right to know', 'Company secrets', 'What exactly should be public, and to whom?'],
+    D: ['#4dffa6', 'Voluntary <i>vs</i> binding', 'Industry pledges', 'Hard EU law', 'Carrot, stick — or both?'],
+  };
+  const cCss = document.createElement('style');
+  cCss.textContent = `.bd-cbox { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; display: flex; flex-direction: column; text-align: left; }
+  .bd-cf { flex: 1; display: flex; flex-direction: column; border: 3px solid var(--c); border-top-width: 26px; border-radius: 28px; background: rgba(255,255,255,.03); overflow: hidden; }
+  .bd-cf-h { display: flex; align-items: center; gap: 36px; padding: 30px 40px 26px; border-bottom: 4px dashed rgba(255,255,255,.18); background: color-mix(in srgb, var(--c) 9%, transparent); }
+  .bd-cf-l { flex: none; width: 150px; height: 150px; border-radius: 36px; background: var(--c); color: #04060d; display: grid; place-items: center; font: 900 112px/1 var(--f-sans, sans-serif); box-shadow: 0 0 50px color-mix(in srgb, var(--c) 55%, transparent); }
+  .bd-cf-k { font: 500 20px var(--f-mono, monospace); letter-spacing: .25em; color: var(--c); }
+  .bd-cf h2 { margin: 6px 0 0; font-size: 82px; line-height: 1; font-weight: 900; letter-spacing: -.02em; }
+  .bd-cf h2 i { font-style: normal; color: var(--ink-2, #b6c0e3); font-weight: 700; }
+  .bd-cf-b { display: flex; gap: 18px; align-items: center; margin-top: 18px; font: 700 28px var(--f-sans, sans-serif); }
+  .bd-cf-b span { padding: 10px 22px; border-radius: 14px; border: 2px solid var(--c); background: color-mix(in srgb, var(--c) 14%, transparent); }
+  .bd-cf-q { margin: 16px 0 0; font: 600 28px var(--f-mono, monospace); color: var(--ink-2, #b6c0e3); }
+  .bd-cf-z { flex: 1; display: grid; place-items: center; font: 800 40px var(--f-sans, sans-serif); color: rgba(255,255,255,.14); text-align: center; }
+  .bd-cf-z small { display: block; margin-top: 10px; font: 500 20px var(--f-mono, monospace); letter-spacing: .2em; }
+  .bd-call { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+  .bd-call .bd-cf-h { flex-direction: column; align-items: flex-start; gap: 16px; padding: 22px 24px 20px; min-height: 330px; }
+  .bd-call .bd-cf-l { width: 96px; height: 96px; font-size: 70px; border-radius: 24px; }
+  .bd-call h2 { font-size: 44px; }
+  .bd-call .bd-cf-q { font-size: 20px; margin-top: 10px; }
+  .bd-call .bd-cf-z { font-size: 26px; }`;
+  document.head.append(cCss);
+  function conflict() {
+    const one = L => { const [col, t, a, b, q] = CFS[L]; return `<div class="bd-cf" style="--c:${col}"><div class="bd-cf-h"><div class="bd-cf-l">${L}</div><div><div class="bd-cf-k">KEY CONFLICT ${L}</div><h2>${t}</h2><div class="bd-cf-b"><span>${a}</span>⚖<span>${b}</span></div><p class="bd-cf-q">→ ${q}</p></div></div><div class="bd-cf-z"><div>Stick the problems here<small>DUPLICATES → STACK THEM</small></div></div></div>`; };
+    const small = L => { const [col, t, , , q] = CFS[L]; return `<div class="bd-cf" style="--c:${col}"><div class="bd-cf-h"><div class="bd-cf-l">${L}</div><div><h2>${t}</h2><p class="bd-cf-q">→ ${q}</p></div></div><div class="bd-cf-z"><div>Post-its ↓</div></div></div>`; };
+    const c = String(data.c || 'all').toUpperCase();
+    ov.innerHTML = CFS[c] ? `<div class="bd-cbox">${one(c)}</div>` : `<div class="bd-cbox"><div class="bd-call">${'ABCD'.split('').map(small).join('')}</div></div>`;
+    animate(ov.querySelectorAll('.bd-cf'), { opacity: [0, 1], y: [40, 0] }, { delay: stagger(.08) });
+  }
   function blank() { ov.innerHTML = '<div class="bd-blank"><div class="bd-k">ITRE · EYP Mersin 2026</div><b>GRIDLINE</b></div>'; }
   function apply(row) {
     if (!row) return;
@@ -212,7 +246,7 @@
     ov.hidden = false;
     const wasVid = !!ov.querySelector('video.bd-v') && mode === 'video';
     if (mode !== 'video') ov.innerHTML = '';
-    ({ timer, groups, qr, blank, video }[mode] || blank)();
+    ({ timer, groups, qr, blank, video, conflict }[mode] || blank)();
     requestAnimationFrame(fitOv); setTimeout(fitOv, 50);
     if (mode !== 'timer' && !wasVid) animate(ov, { opacity: [0, 1] }, { duration: .4 });
   }

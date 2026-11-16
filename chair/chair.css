@@ -384,3 +384,5 @@ body.pmode .gc-in input { -webkit-text-security: disc; }
 .rb-vlist button.on { border-color: var(--volt); background: rgba(255,225,77,.14); }
 .rb-vctl { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
 .rb-vctl button { text-align: center; font-size: 16px; }
+
+.rb-cfl button:first-child { grid-column: 1 / -1; text-align: center; }
