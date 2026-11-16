@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EU 101 · ITRE</title>
+<link rel="stylesheet" href="../assets/css/fonts.css">
+<style>
+:root { --bg:#04060d; --ink:#eaf0ff; --ink-2:#b6c0e3; --muted:#7b87b3; --cyan:#3df2ff; --volt:#ffe14d; --pink:#ff3d7f; --green:#4dffa6; --violet:#9b7bff; --orange:#ff8a3d;
+  --sans:'Archivo',system-ui,sans-serif; --mono:'DM Mono',ui-monospace,monospace; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--sans); overflow: hidden; user-select: none; -webkit-tap-highlight-color: transparent; }
+body::before { content: ''; position: fixed; inset: -50%; background-image: linear-gradient(rgba(110,140,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(110,140,255,.07) 1px, transparent 1px); background-size: 60px 60px; animation: drift 40s linear infinite; }
+@keyframes drift { to { transform: translate(60px, 60px); } }
+.glow { position: fixed; width: 70vmax; height: 70vmax; border-radius: 50%; filter: blur(120px); opacity: .22; background: var(--c, var(--cyan)); left: 50%; top: 50%; transform: translate(-50%, -50%); transition: background .8s; pointer-events: none; }
+.slide { position: fixed; inset: 0; display: grid; place-items: center; padding: 7vh 7vw 10vh; visibility: hidden; }
+.slide.on { visibility: visible; }
+.top { position: fixed; left: 3vw; top: 3vh; font: 500 clamp(12px, 1.4vw, 22px) var(--mono); letter-spacing: .2em; color: var(--muted); z-index: 2; }
+.top b { color: var(--c, var(--cyan)); }
+.bar { position: fixed; left: 0; bottom: 0; height: 6px; background: var(--c, var(--cyan)); box-shadow: 0 0 20px var(--c, var(--cyan)); transition: width .5s cubic-bezier(.2,.8,.2,1), background .8s; z-index: 2; }
+.hint { position: fixed; right: 3vw; bottom: 2.4vh; font: 500 clamp(11px, 1.1vw, 18px) var(--mono); color: var(--muted); z-index: 2; }
+.fs { position: fixed; right: 3vw; top: 2.4vh; z-index: 3; background: none; border: 1px solid rgba(110,140,255,.3); color: var(--ink-2); font: 500 14px var(--mono); padding: 8px 12px; border-radius: 10px; cursor: pointer; }
+/* title */
+.title { text-align: center; }
+.title .k { font: 500 clamp(16px, 2vw, 32px) var(--mono); letter-spacing: .3em; color: var(--cyan); }
+.title h1 { margin: 2vh 0; font-size: clamp(60px, 11vw, 220px); line-height: .95; font-weight: 900; letter-spacing: -.03em; text-shadow: 0 0 60px rgba(61,242,255,.4); }
+.title p { font-size: clamp(20px, 2.4vw, 44px); color: var(--ink-2); margin: 0; }
+.chips { display: flex; flex-wrap: wrap; gap: 1.2vw; justify-content: center; margin-top: 5vh; max-width: 80vw; }
+.chips span { font-size: clamp(26px, 3.4vw, 60px); width: 1.8em; height: 1.8em; display: grid; place-items: center; border-radius: 22%; background: rgba(255,255,255,.05); border: 1px solid rgba(110,140,255,.25); }
+/* term */
+.term { width: min(1500px, 100%); display: grid; grid-template-columns: auto 1fr; gap: 4vw; align-items: center; }
+.ic { font-size: clamp(90px, 14vw, 280px); width: 1.35em; height: 1.35em; display: grid; place-items: center; border-radius: 28%; border: 4px solid var(--c); background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 35%, transparent), transparent 70%); box-shadow: 0 0 60px color-mix(in srgb, var(--c) 45%, transparent); animation: bob 3s ease-in-out infinite; }
+@keyframes bob { 50% { transform: translateY(-14px) rotate(-3deg); } }
+.no { font: 500 clamp(14px, 1.6vw, 26px) var(--mono); letter-spacing: .2em; color: var(--c); }
+.term h2 { margin: 1vh 0 2vh; font-size: clamp(48px, 7vw, 140px); line-height: .98; font-weight: 900; letter-spacing: -.02em; }
+.guess { font-size: clamp(24px, 3vw, 56px); color: var(--volt); font-weight: 800; }
+.def { font-size: clamp(24px, 2.9vw, 54px); line-height: 1.25; font-weight: 600; color: var(--ink); margin: 0; }
+.ex { margin-top: 3vh; padding: 2.2vh 2vw; border-radius: 22px; border: 2px solid color-mix(in srgb, var(--c) 60%, transparent); background: color-mix(in srgb, var(--c) 10%, transparent); font-size: clamp(20px, 2.4vw, 44px); line-height: 1.3; }
+.ex b { display: block; font: 500 clamp(12px, 1.3vw, 22px) var(--mono); letter-spacing: .2em; color: var(--c); margin-bottom: .6vh; }
+.hide { display: none; }
+@media (max-aspect-ratio: 1/1) { .term { grid-template-columns: 1fr; text-align: center; } .ic { margin: 0 auto; } }
+
+.sl { width: min(1550px, 100%); }
+.sl .k { font: 500 clamp(14px, 1.7vw, 28px) var(--mono); letter-spacing: .22em; color: var(--c); }
+.sl h2 { margin: 1.2vh 0 3vh; font-size: clamp(44px, 6.4vw, 124px); line-height: .98; font-weight: 900; letter-spacing: -.02em; }
+.row { display: grid; grid-template-columns: auto 1fr; gap: 3.5vw; align-items: center; }
+.pts { margin: 0; padding: 0; list-style: none; display: grid; gap: 2vh; }
+.pts li { font-size: clamp(22px, 2.6vw, 50px); line-height: 1.25; font-weight: 600; padding-left: 1.3em; position: relative; }
+.pts li::before { content: '▸'; position: absolute; left: 0; color: var(--c); }
+.pts li b { color: var(--c); }
+.grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.6vw; }
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6vw; }
+.card { padding: 3vh 1.6vw; border-radius: 24px; border: 3px solid var(--cc, var(--c)); background: color-mix(in srgb, var(--cc, var(--c)) 10%, transparent); box-shadow: 0 0 40px color-mix(in srgb, var(--cc, var(--c)) 25%, transparent); }
+.card .e { font-size: clamp(40px, 5vw, 96px); }
+.card h3 { margin: 1vh 0; font-size: clamp(24px, 2.6vw, 50px); font-weight: 900; color: var(--cc, var(--c)); }
+.card p { margin: 0; font-size: clamp(16px, 1.75vw, 32px); line-height: 1.3; color: var(--ink); }
+.flow { display: flex; align-items: center; justify-content: center; gap: 1.2vw; flex-wrap: nowrap; }
+.flow .card { flex: 1; text-align: center; }
+.arrow { font-size: clamp(30px, 4vw, 80px); color: var(--c); animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: translateX(10px); opacity: .5; } }
+.title .q { max-width: 22ch; margin: 3vh auto 0; color: var(--ink); font-size: clamp(32px, 4.6vw, 88px); font-weight: 800; line-height: 1.15; }
+.a { margin-top: 5vh; display: inline-block; font-size: clamp(24px, 3vw, 56px); font-weight: 900; padding: 1.6vh 2.4vw; border-radius: 22px; background: var(--c); color: #04060d; box-shadow: 0 0 60px var(--c); }
+.warn { margin-top: 3vh; padding: 2vh 2vw; border-radius: 20px; border: 2px dashed var(--pink); color: var(--ink); font-size: clamp(18px, 2.1vw, 40px); }
+.warn b { color: var(--pink); }
+.big { font-size: clamp(80px, 13vw, 260px); font-weight: 900; line-height: .9; color: var(--c); text-shadow: 0 0 60px var(--c); }
+@media (max-aspect-ratio: 4/3) { .flow { flex-wrap: wrap; } .flow .card { flex: 1 1 40%; } .flow .arrow { display: none; } .grid4 { grid-template-columns: repeat(2, 1fr); } }
+[data-b] { visibility: hidden; }
+[data-b].shown { visibility: visible; }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<div class="top">ITRE · <b>EU 101</b></div>
+<button class="fs" id="fs">⛶ Full screen</button>
+<div id="deck"></div>
+<div class="bar" id="bar"></div>
+<div class="hint">→ / click = next · ← = back</div>
+<script src="../assets/js/motion.js"></script>
+<script>
+(() => {
+  const COLS = ['#3df2ff', '#ffe14d', '#ff3d7f', '#4dffa6', '#9b7bff', '#ff8a3d'];
+  const { animate, stagger } = window.Motion || {};
+  
+const SL = [
+ { c: 0, h: `<div class="title"><div class="k">ITRE · DAY 2</div><h1>EU 101</h1><p>Who does what in Brussels?</p><div class="chips"><span>🏛</span><span>🗳</span><span>🤝</span><span>👑</span><span>⚖️</span><span>📜</span></div></div>` },
+ { c: 1, h: `<div class="sl"><div class="k">THE BASICS</div><h2>27 countries.<br>One rulebook.</h2><div class="row"><div class="big" data-b="1">27</div><ul class="pts"><li data-b="1"><b>450 million</b> people in the European Union</li><li data-b="2">Countries share power to make <b>common laws</b></li><li data-b="3">Your resolution tells <b>EU institutions</b> what to do — so know who they are!</li></ul></div></div>` },
+ { c: 0, h: `<div class="sl"><div class="row"><div class="ic">🏛</div><div><div class="k">PROPOSES</div><h2>European Commission</h2><ul class="pts"><li data-b="1">The EU's "government" — <b>27 Commissioners</b>, one per country</li><li data-b="2">The <b>only one</b> that can propose a new law</li><li data-b="3">Checks that countries <b>follow</b> EU law</li></ul></div></div></div>` },
+ { c: 3, h: `<div class="sl"><div class="row"><div class="ic">🗳</div><div><div class="k">DECIDES · FOR CITIZENS</div><h2>European Parliament</h2><ul class="pts"><li data-b="1"><b>720 MEPs</b>, elected by EU citizens every 5 years</li><li data-b="2"><b>Amends</b> and <b>votes</b> on laws</li><li data-b="3">Works in committees — <b>ITRE</b> = Industry, Research &amp; Energy. That's us! ⚡</li></ul></div></div></div>` },
+ { c: 1, h: `<div class="sl"><div class="row"><div class="ic">🤝</div><div><div class="k">DECIDES · FOR COUNTRIES</div><h2>Council of the EU</h2><ul class="pts"><li data-b="1"><b>Ministers</b> from all 27 countries</li><li data-b="2">Meets by topic — e.g. the <b>27 energy ministers</b></li><li data-b="3">Must <b>agree with Parliament</b> for a law to pass</li></ul></div></div></div>` },
+ { c: 4, h: `<div class="sl"><div class="row"><div class="ic">👑</div><div><div class="k">SETS THE DIRECTION</div><h2>European Council</h2><ul class="pts"><li data-b="1"><b>Presidents &amp; prime ministers</b> of the 27</li><li data-b="2">Sets big goals — but <b>does not make laws</b></li></ul><div class="warn" data-b="3"><b>⚠ Don't mix up:</b> Council of the EU (ministers) · European Council (leaders) · Council of Europe (not even the EU!)</div></div></div></div>` },
+ { c: 2, h: `<div class="sl"><div class="row"><div class="ic">⚖️</div><div><div class="k">THE REFEREE</div><h2>Court of Justice</h2><ul class="pts"><li data-b="1">Makes sure EU law means <b>the same everywhere</b></li><li data-b="2">Can rule against a country that <b>breaks</b> EU law</li></ul></div></div></div>` },
+ { c: 0, h: `<div class="sl"><div class="k">HOW A LAW IS MADE</div><h2>From idea to law</h2><div class="flow"><div class="card" data-b="1" style="--cc:#3df2ff"><div class="e">🏛</div><h3>Commission</h3><p>proposes</p></div><div class="arrow" data-b="2">→</div><div class="card" data-b="2" style="--cc:#4dffa6"><div class="e">🗳🤝</div><h3>Parliament + Council</h3><p>amend &amp; agree</p></div><div class="arrow" data-b="3">→</div><div class="card" data-b="3" style="--cc:#ffe14d"><div class="e">📜</div><h3>EU law</h3><p>adopted</p></div><div class="arrow" data-b="4">→</div><div class="card" data-b="4" style="--cc:#ff3d7f"><div class="e">🇪🇺</div><h3>27 countries</h3><p>apply it</p></div></div></div>` },
+ { c: 5, h: `<div class="sl"><div class="k">THE TOOLBOX</div><h2>What can the EU use?</h2><div class="grid4"><div class="card" data-b="1" style="--cc:#3df2ff"><div class="e">📕</div><h3>Regulation</h3><p>Applies directly in all 27, word for word. Strong.</p></div><div class="card" data-b="2" style="--cc:#ffe14d"><div class="e">🎯</div><h3>Directive</h3><p>Sets the goal; each country writes its own law. Flexible.</p></div><div class="card" data-b="3" style="--cc:#9b7bff"><div class="e">🙏</div><h3>Recommendation</h3><p>Not binding — a polite "please". Easy to agree on.</p></div><div class="card" data-b="4" style="--cc:#4dffa6"><div class="e">💶</div><h3>Funding</h3><p>EU money rewards the behaviour you want.</p></div></div></div>` },
+ { c: 3, h: `<div class="sl"><div class="row"><div class="ic">⚡</div><div><div class="k">AND ENERGY?</div><h2>A shared job</h2><ul class="pts"><li data-b="1">Energy is a <b>shared competence</b>: EU + countries</li><li data-b="2">The EU sets <b>common rules &amp; targets</b> (efficiency, climate, the grid market)</li><li data-b="3">Each country still picks its own <b>energy mix</b> — nuclear, gas, wind, sun…</li></ul></div></div></div>` },
+ { c: 1, quiz: 1, h: `<div class="title"><div class="k">QUIZ · WHO WOULD YOU CALL?</div><p class="q">"We need a brand-new EU law on data-centre water use."</p><div class="a" data-b="1">🏛 The Commission — only it can propose</div></div>` },
+ { c: 3, quiz: 1, h: `<div class="title"><div class="k">QUIZ · WHO WOULD YOU CALL?</div><p class="q">"The 27 energy ministers have to agree."</p><div class="a" data-b="1">🤝 Council of the EU</div></div>` },
+ { c: 2, quiz: 1, h: `<div class="title"><div class="k">QUIZ · WHO WOULD YOU CALL?</div><p class="q">"A country ignores an EU energy law."</p><div class="a" data-b="1">🏛 Commission → ⚖️ Court of Justice</div></div>` },
+ { c: 4, h: `<div class="title"><div class="k">REMEMBER</div><h1 style="font-size:clamp(50px,7.5vw,150px)">Name the right<br>institution ✍️</h1><p>"Calls upon <b style="color:#3df2ff">the European Commission</b> to propose…"</p></div>` },
+];
+  const deck = document.getElementById('deck');
+  const beats = [];
+  SL.forEach((s, i) => {
+    deck.insertAdjacentHTML('beforeend', `<section class="slide" style="--c:${COLS[s.c]}">${s.h}</section>`);
+    const el = deck.lastElementChild;
+    const n = Math.max(0, ...[...el.querySelectorAll('[data-b]')].map(x => +x.dataset.b));
+    for (let b = 0; b <= n; b++) beats.push({ s: i, b });
+  });
+  const slides = [...deck.children];
+  let k = -1, curS = -1;
+  function go(n) {
+    n = Math.max(0, Math.min(n, beats.length - 1)); if (n === k) return;
+    const fwd = n > k; k = n; const { s, b } = beats[k]; const el = slides[s];
+    if (s !== curS) {
+      slides.forEach(x => x.classList.toggle('on', x === el)); curS = s;
+      document.documentElement.style.setProperty('--c', el.style.getPropertyValue('--c'));
+      if (animate) {
+        animate(el.querySelectorAll('.ic, .chips span, .big'), { scale: [0.3, 1], rotate: [-20, 0], opacity: [0, 1] }, { type: 'spring', bounce: .45, delay: stagger ? stagger(.05) : 0 });
+        animate(el.querySelectorAll('.k, h1, h2, .title > p, .q'), { y: [50, 0], opacity: [0, 1] }, { duration: .6, ease: [.2, .8, .2, 1], delay: stagger ? stagger(.08, { startDelay: .1 }) : 0 });
+      }
+    }
+    el.querySelectorAll('[data-b]').forEach(x => {
+      const on = +x.dataset.b <= b, was = x.classList.contains('shown');
+      x.classList.toggle('shown', on);
+      if (on && !was && fwd && animate) animate(x, x.classList.contains('a') || x.classList.contains('card') ? { scale: [.6, 1], opacity: [0, 1] } : { x: [-40, 0], opacity: [0, 1], filter: ['blur(6px)', 'blur(0px)'] }, x.classList.contains('a') || x.classList.contains('card') ? { type: 'spring', bounce: .45 } : { duration: .5 });
+    });
+    document.getElementById('bar').style.width = (k / (beats.length - 1) * 100) + '%';
+    try { history.replaceState(null, '', '#' + k); } catch (e) {}
+  }
+  addEventListener('keydown', e => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' ', 'Enter'].includes(e.key)) { e.preventDefault(); go(k + 1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(k - 1); }
+    if (e.key === 'Home') go(0); if (e.key === 'End') go(beats.length - 1);
+  });
+  addEventListener('click', e => { if (e.target.closest('.fs')) return; go(e.clientX < innerWidth * 0.25 ? k - 1 : k + 1); });
+  let sx = null; addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', e => { if (sx == null) return; const dx = e.changedTouches[0].clientX - sx; if (Math.abs(dx) > 50) { e.preventDefault(); go(k + (dx < 0 ? 1 : -1)); } sx = null; });
+  document.getElementById('fs').addEventListener('click', () => { const d = document.documentElement; document.fullscreenElement ? document.exitFullscreen() : d.requestFullscreen && d.requestFullscreen(); });
+  go(parseInt(location.hash.slice(1)) || 0);
+})();
+</script>
+</body>
+</html>
