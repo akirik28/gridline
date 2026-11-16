@@ -49,7 +49,7 @@ window.GL_STEPS = [
   { d: 2, t: '15:05', m: 45, k: 'cw', title: 'Rotation 1 · Problems', rules: ['New random groups.', 'Pick the problems that matter most and find a source for each.', 'Then: Bank, Hospital or Graveyard.'], sec: 'tpl-bhg' },
   { d: 2, t: '16:45', m: 5, k: 'en', title: 'Simon Says', rules: ['Only move when you hear "The Commission says…".', 'Move without it? You’re out.', 'Last one standing wins.'] },
   { d: 2, t: '16:50', m: 45, k: 'cw', title: 'Rotation 2 · Because', rules: ['New groups again.', 'Turn every problem into a sentence: "…is a problem because…".', 'Then: Bank, Hospital or Graveyard.'], sec: 'tpl-bhg' },
-  { d: 2, t: '17:35', m: 25, k: 'cw', title: 'Aim statement', rules: ['All together: what should Europe look like if our resolution works?', '3–4 sentences.', 'This is our compass for tomorrow.'], sec: 'tpl-anatomy' },
+  { d: 2, t: '17:35', m: 25, k: 'cw', title: 'Aim statement', rules: ['All together: what do we want to achieve?', '“The European Youth Parliament aims to:” + 3 big goals, each starting with a verb.', 'This is our compass for tomorrow.'], sec: 'tpl-anatomy' },
   // ---------- DAY 3 ----------
   { d: 3, t: '09:00', m: 20, k: 'en', title: 'The Machine', rules: ['One person starts a movement and a sound.', 'Everyone adds a part until we are one big data-centre machine.', 'Then: we finish the aim statement.'] },
   { d: 3, t: '09:20', m: 20, k: 'cw', title: 'Who should do what?', rules: ['All together: brainstorm solutions.', 'Every solution needs a WHO.', 'Wild ideas welcome.'], ia: { type: 'poll', q: 'Who should move first?', opts: ['EU institutions', 'National governments', 'Tech companies', 'Local communities'] } },
