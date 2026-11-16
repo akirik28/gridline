@@ -19,6 +19,7 @@
   html.board .st-content::before, html.board #st-timer { display: none !important; }
   /* page 1: title + rules, big */
   html.board #step.pg0 .bd-right { display: none; }
+  html.board #to-video { display: none; } /* the topic video plays full-screen via the chair's 🎬 Video */
   html.board .st-art { position: relative; float: right; right: auto; top: auto; width: 330px; margin: 10px 0 24px 48px; }
   html.board .st-title, html.board .st-rules { position: relative; z-index: 1; }
   html.board .bd-left::after { content: ''; display: block; clear: both; }
