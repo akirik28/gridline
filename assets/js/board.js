@@ -176,7 +176,7 @@
     water: ['video/water-energy.mp4?v=1', 'video/water-energy-poster.jpg?v=1'],
     eu: ['video/eu-basics.mp4?v=1', 'video/eu-basics-poster.jpg?v=1'],
     to: ['video/itre-to.mp4?v=3', 'video/itre-to-poster.jpg?v=3'],
-    blackout: ['video/blackout.mp4?v=2', 'video/blackout-poster.jpg?v=1'],
+    blackout: ['video/blackout.mp4?v=3', 'video/blackout-poster.jpg?v=1'],
   };
   const vCss = document.createElement('style');
   vCss.textContent = `.bd-vbox { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; }
