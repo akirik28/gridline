@@ -5,6 +5,15 @@
   const $$ = (s, r = document) => [...r.querySelectorAll(s)];
   const R = FX.reduce;
   const S = GL_STEPS, N = S.length;
+  /* videos attached to steps (st.vid) */
+  const VID = {
+    aim: ['video/aim-statement.mp4?v=1', 'video/aim-statement-poster.jpg?v=1', 'THE AIM STATEMENT · 1:30'],
+    because: ['video/because-clauses.mp4?v=1', 'video/because-clauses-poster.jpg?v=1', 'BECAUSE CLAUSES · 2:06'],
+    who: ['video/who-can-act.mp4?v=1', 'video/who-can-act-poster.jpg?v=1', 'WHO CAN ACT? · 1:08'],
+    byc: ['video/by-clauses.mp4?v=1', 'video/by-clauses-poster.jpg?v=1', 'BY CLAUSES · 1:25'],
+    lego: ['video/lego-method.mp4?v=2', 'video/lego-method-poster.jpg?v=1', 'THE LEGO METHOD · 1:24'],
+    ga: ['video/how-ga-works.mp4?v=1', 'video/how-ga-works-poster.jpg?v=1', 'HOW GA WORKS · 1:29'],
+  };
   const bg = FX.grid($('#grid-bg'));
   FX.cursor();
 
@@ -56,10 +65,11 @@
     cleanup.push(FX.art(art, st.k));
     $('#step').dataset.kind = st.k;
     const box = $('#st-content'); box.innerHTML = '';
+    if (st.vid && VID[st.vid]) { const [src, post, lab] = VID[st.vid]; box.insertAdjacentHTML('beforeend', `<div class="video-card step-vid"><div class="vc-screen has-video"><video controls playsinline preload="metadata" poster="${post}" src="${src}"></video></div><p class="mono muted" style="margin:12px 6px 4px;font-size:13px">🎬 ${lab}</p></div>`); }
     if (st.sec) { const tpl = document.getElementById(st.sec); if (tpl) box.append(tpl.content.cloneNode(true)); }
     // a video slot can be swapped by dropping a file at data-try (e.g. video/before-day2.mp4)
     box.querySelectorAll('video[data-try]').forEach(v => fetch(v.dataset.try, { method: 'HEAD' }).then(r => { if (r.ok && /video/.test(r.headers.get('content-type') || '')) v.src = v.dataset.try; }).catch(() => {}));
-    box.hidden = !st.sec;
+    box.hidden = !st.sec && !st.vid;
     navState(); timer();
     scrollTo({ top: 0, behavior: R ? 'auto' : 'smooth' });
 
@@ -80,7 +90,7 @@
       cleanup.push(() => clearTimeout(t));
     });
     animate('#st-timer', { opacity: [0, 1], scaleX: [.6, 1] }, { delay: .6, duration: .6 });
-    if (st.sec) enhance(box);
+    if (st.sec || st.vid) enhance(box);
     mountIa(); cleanup.push(() => { iaStop(); iaStop = () => {}; });
     $$('#dr-list .dr-step').forEach(b => b.classList.toggle('cur', +b.dataset.i === view));
   }
