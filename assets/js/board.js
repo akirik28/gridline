@@ -180,6 +180,9 @@
     lego: ['video/lego-method.mp4?v=2', 'video/lego-method-poster.jpg?v=1'],
     because: ['video/because-clauses.mp4?v=1', 'video/because-clauses-poster.jpg?v=1'],
     aim: ['video/aim-statement.mp4?v=1', 'video/aim-statement-poster.jpg?v=1'],
+    who: ['video/who-can-act.mp4?v=1', 'video/who-can-act-poster.jpg?v=1'],
+    byc: ['video/by-clauses.mp4?v=1', 'video/by-clauses-poster.jpg?v=1'],
+    ga: ['video/how-ga-works.mp4?v=1', 'video/how-ga-works-poster.jpg?v=1'],
   };
   const vCss = document.createElement('style');
   vCss.textContent = `.bd-vbox { position: absolute; left: 50%; top: 50%; margin: -450px 0 0 -800px; width: 1600px; height: 900px; }
