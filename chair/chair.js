@@ -252,12 +252,24 @@
     if (!ppl.length) { names.focus(); animate(names, { x: [0, -10, 10, 0] }, { duration: .3 }); return; }
     for (let i = ppl.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ppl[i], ppl[j]] = [ppl[j], ppl[i]]; }
     const g = ppl.length <= 8 ? 3 : 4;
-    const conf = g === 3 ? [CONF[0], CONF[1], { ...CONF[2], t: 'Transparency + voluntary vs binding' }] : CONF;
-    const out = $('#groups-out'); out.style.setProperty('--n', g);
-    const cols = conf.map(() => []);
+    const cols = Array.from({ length: g }, () => []);
     ppl.forEach((p, i) => cols[i % g].push(p));
+    showGroups(cols, ppl.length >= 13);
+  });
+  // balanced groups (set from activity ratings) live behind the PIN, never in this public file
+  $('#g-balanced').addEventListener('click', async () => {
+    const btn = $('#g-balanced'); btn.disabled = true;
+    const { data, error } = await sb.rpc('gridline_get_teams', { p_pin: PIN });
+    btn.disabled = false;
+    if (error || !Array.isArray(data) || !data.length) { $('#g-rule').textContent = 'No balanced groups saved.'; return; }
+    showGroups(data, false);
+  });
+  function showGroups(cols, tk) {
+    const g = cols.length, ppl = cols.flat();
+    const conf = g === 3 ? [CONF[0], CONF[1], { ...CONF[2], t: 'Transparency + voluntary vs binding' }] : CONF.slice(0, g);
+    const out = $('#groups-out'); out.style.setProperty('--n', g);
     out.innerHTML = conf.map((c, i) => `<div class="g-col" style="--c:${c.c}"><h3><b>${c.L}</b>Group ${c.L}</h3><p>${c.t}</p>${cols[i].map((p, j) =>
-      `<div class="g-card">${esc(p)}${ppl.length >= 13 && j === 0 ? '<em>⏱ TIMEKEEPER</em>' : ''}</div>`).join('')}</div>`).join('');
+      `<div class="g-card">${esc(p)}${tk && j === 0 ? '<em>⏱ TIMEKEEPER</em>' : ''}</div>`).join('')}</div>`).join('');
     animate($$('.g-col', out), { opacity: [0, 1], y: [-40, 0], rotate: [-4, 0] }, { delay: stagger(.08), type: 'spring', bounce: .4 });
     const cards = $$('.g-card', out);
     cards.forEach((c, i) => animate(c, { opacity: [0, 1], scale: [.3, 1], y: [-120, 0], rotate: [Math.random() * 40 - 20, 0] },
@@ -265,7 +277,7 @@
     FX.zap('up'); bg && bg.surge(20);
     window.GL_lastGroups = conf.map((c, i) => ({ L: c.L, t: c.t, c: c.c, names: cols[i] }));
     window.GL_boardSync && GL_boardSync('groups');
-  });
+  }
   function esc(s) { return s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
   /* ================= board ================= */
